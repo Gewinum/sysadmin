@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SysAdmin — ბილეთების ტრენაჟორი</title>
+<style>
+:root{color-scheme:light;--bg:#f6f4ef;--card:#fff;--ink:#1d2330;--mute:#6b7180;--line:#e4e0d6;--acc:#1f5c99;--acc2:#e8f0f9;--ok:#1f7a4a;--okbg:#e6f4ec;--bad:#b3261e;--badbg:#fbe9e7;--warn:#8a5a00;--warnbg:#fff4dc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Georgian","BPG Arial","Sylfaen","Segoe UI",system-ui,sans-serif;font-size:16px;line-height:1.5}
+header{background:#14233a;color:#fff;padding:18px 20px 0}
+header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.2px}
+header p{margin:4px 0 12px;color:#b9c4d6;font-size:13.5px}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:transparent;border:0;color:#c9d3e3;padding:10px 14px;font:inherit;font-size:14.5px;cursor:pointer;border-radius:8px 8px 0 0}
+nav button.on{background:var(--bg);color:var(--ink);font-weight:700}
+main{max-width:920px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-size:14.5px;cursor:pointer}
+.btn.sec{background:var(--acc2);color:var(--acc)}
+.btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.btn:disabled{opacity:.45;cursor:default}
+.chip{display:inline-block;font-size:12px;padding:2px 8px;border-radius:20px;background:var(--acc2);color:var(--acc);margin-right:6px;vertical-align:middle}
+.chip.v{background:var(--warnbg);color:var(--warn)}
+.chip.a{background:#efe9fb;color:#5b3aa6}
+h2{font-size:18px;margin:22px 0 4px}
+h3{font-size:16px;margin:0 0 8px}
+.q{font-weight:600;margin:4px 0 10px}
+.opt{display:block;width:100%;text-align:left;background:#fbfaf7;border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:6px 0;font:inherit;cursor:pointer;color:var(--ink)}
+.opt:hover{border-color:#b8c6d8}
+.opt.sel{border-color:var(--acc);background:var(--acc2)}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}
+.opt.bad{border-color:var(--bad);background:var(--badbg)}
+.opt .l{font-weight:700;margin-right:8px;color:var(--mute)}
+.ans{background:var(--okbg);border-left:4px solid var(--ok);padding:10px 12px;border-radius:6px;margin-top:10px;white-space:pre-wrap}
+.expl{color:var(--mute);font-size:14px;margin-top:8px}
+textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:15px;resize:vertical;background:#fdfcfa}
+.self{display:flex;gap:8px;margin-top:8px}
+.self button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:14px}
+.self button.okb.on{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.self button.badb.on{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.score{font-size:22px;font-weight:700}
+.mute{color:var(--mute);font-size:14px}
+.filters label{margin-right:14px;font-size:14.5px;cursor:pointer;white-space:nowrap}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar>div{height:100%;background:var(--acc)}
+.flash{min-height:180px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;text-align:center;font-size:17px}
+.flash .back{margin-top:14px;text-align:left;background:var(--okbg);padding:12px;border-radius:8px;font-size:15.5px}
+input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit}
+.list .item{border-bottom:1px solid var(--line);padding:10px 0}
+.list .item:last-child{border-bottom:0}
+.hide{display:none}
+.num{display:inline-block;min-width:26px;color:var(--mute);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{display:block;font-size:22px}
+.note{background:var(--warnbg);border:1px solid #f0dca8;color:#5f4300;border-radius:10px;padding:12px 14px;font-size:14.5px}
+select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:#fff}
+</style>
+</head>
+<body>
+<header>
+  <h1>Windows Server სისტემური ადმინისტრირება — ბილეთების ტრენაჟორი</h1>
+  <p>ქვიზები 1–4, თეორიული ნაწილი (ლაბების გარეშე) · განმარტებები, ღია კითხვები და ტესტები, მათ შორის გადაფორმულირებული ვარიანტები</p>
+  <nav id="nav">
+    <button data-t="home" class="on">მთავარი</button>
+    <button data-t="ticket">ბილეთი</button>
+    <button data-t="tests">ტესტები</button>
+    <button data-t="flash">ბარათები</button>
+    <button data-t="mist">შეცდომები</button>
+    <button data-t="all">მთელი ბაზა</button>
+  </nav>
+</header>
+<main>
+<section id="home"></section>
+<section id="ticket" class="hide"></section>
+<section id="tests" class="hide"></section>
+<section id="flash" class="hide"></section>
+<section id="mist" class="hide"></section>
+<section id="all" class="hide"></section>
+</main>
+<script>
+const DEFS=[],OPENS=[],TESTS=[];
+function D(q,t,d){DEFS.push({q,t,d})}
+function O(q,t,a,v){OPENS.push({q,t,a,v:!!v})}
+function T(q,s,o,a,e,orig){TESTS.push({q,s,o,a:Array.isArray(a)?a:[a],e:e||"",kind:orig===0?"orig":"var"})}
+// ===================== ქვიზი 1 =====================
+D(1,"ჰოსთი (Host)","ქსელში ჩართული ნებისმიერი მოწყობილობა, რომელსაც ქსელურ ინტერფეისზე მინიჭებული აქვს IP მისამართი და ითხოვს ან უზრუნველყოფს ქსელურ რესურსებს (მაგ. კლიენტები, სერვერები, როუტერები).");
+D(1,"ნოუდი (Node)","ნებისმიერი მოწყობილობა, რომელსაც შეუძლია ქსელური მონაცემების მიღება და გადაცემა, თუმცა მის ძირითად საკომუნიკაციო ინტერფეისს შეიძლება არ ჰქონდეს IP მისამართი (მაგ. სვიჩი). ყველა ჰოსტი ნოუდია, მაგრამ ყველა ნოუდი ჰოსტი არ არის.");
+D(1,"კლიენტი (Client)","კომპიუტერი ან მოწყობილობა ქსელში, რომელიც ითხოვს წვდომას სხვა კომპიუტერებზე (სერვერებზე) არსებულ რესურსებსა და სერვისებზე.");
+D(1,"სერვერი (Server)","კომპიუტერი ან პროგრამული სისტემა, რომელიც პასუხისმგებელია კლიენტებისთვის ქსელური სერვისების, ფაილებისა და რესურსების მიწოდებასა და წვდომის მართვაზე.");
+D(1,"PAN (Personal Area Network)","პერსონალური ქსელი, რომელიც აერთიანებს მოწყობილობებს მცირე კერძო სივრცეში (მაგ. Bluetooth ან Wi-Fi ტექნოლოგიით).");
+D(1,"MAN (Metropolitan Area Network)","ქალაქის ან მუნიციპალიტეტის გეოგრაფიულ საზღვრებში გაერთიანებული ლოკალური ქსელების (LAN) სისტემა.");
+D(1,"LAN (Local Area Network)","ლოკალური ქსელი, რომელიც აერთიანებს კომპიუტერებს მცირე გეოგრაფიულ არეალში (ერთ ოთახში, შენობაში ან მომიჯნავე ნაგებობებში).");
+D(1,"WAN (Wide Area Network)","ფართო არეალის (გლობალური) ქსელი, რომელიც ფარავს დიდ გეოგრაფიულ სივრცეებს სატელეკომუნიკაციო არხებისა და სატელიტების საშუალებით (მაგ. ინტერნეტი).");
+D(1,"კლასტერი (Cluster)","ორი ან მეტი დამოუკიდებელი სერვერის გაერთიანება, რომლებიც მოქმედებენ როგორც ერთიანი სისტემა მაღალი ხელმისაწვდომობისა (High Availability) და ხარვეზგამძლეობის (Fault Tolerance) უზრუნველსაყოფად.");
+D(1,"On-premises server","სერვერი, რომელიც ფიზიკურად განთავსებულია უშუალოდ ორგანიზაციის შენობაში ან კერძო სერვერულში.");
+D(1,"Cloud server","სერვერი, რომელიც განთავსებულია ინტერნეტში არსებულ მონაცემთა ცენტრში (ღრუბელში) და წვდომადია დისტანციურად.");
+D(1,"Virtual machine (ვირტუალური მანქანა)","ჰიპერვიზორის მიერ ფიზიკურ აპარატურაზე გაშვებული პროგრამულად ემულირებული სრული ოპერაციული სისტემა (Guest OS).");
+D(1,"NOS (Network Operating System)","ქსელური ოპერაციული სისტემა, რომელიც მართავს ქსელურ რესურსებს, მომხმარებლებს, უსაფრთხოებასა და სერვისებს (მაგ. Windows Server, Linux Server).");
+D(1,"NTFS (New Technology File System)","Windows-ის ძირითადი ფაილური სისტემა, რომელიც უზრუნველყოფს წვდომის კონტროლის სიებს (DACL), EFS შიფრაციას, კვოტებსა და დედუპლიკაციას.");
+D(1,"Local User Account","კონკრეტულ კომპიუტერზე შექმნილი მომხმარებლის ანგარიში, რომელიც ინახება და ავტენტიფიცირდება ლოკალური SAM მონაცემთა ბაზის მიერ.");
+D(1,"Local Group Account","ლოკალურ SAM ბაზაში არსებული ჯგუფი, რომელიც აერთიანებს რამდენიმე ლოკალურ მომხმარებელს უფლებებისა და ნებართვების ჯგუფურად მინიჭების გასამარტივებლად.");
+D(1,"User Rights","სისტემური დონის უფლებამოსილებები, რომლებიც განსაზღვრავენ მომხმარებლის ან ჯგუფის შესაძლებლობას განახორციელოს კონკრეტული სისტემური მოქმედებები (მაგ. სისტემაში შესვლა, გათიშვა, სარეზერვო ასლის შექმნა).");
+D(1,"Permissions","წვდომის წესები (მაგ. Read, Write, Full Control), რომლებიც განსაზღვრავენ კონკრეტულ რესურსზე (ფაილზე, საქაღალდეზე, პრინტერზე) მომხმარებლის ან ჯგუფის უფლებებს.");
+D(1,"SAM (Security Accounts Manager)","ლოკალური მონაცემთა ბაზა, სადაც ინახება Windows-ის ლოკალური მომხმარებლებისა და ჯგუფების ანგარიშები და პაროლების ჰეშები.");
+D(1,"SID (Security Identifier)","ანგარიშის/ობიექტის უნიკალური იდენტიფიკატორი; ანგარიშის წაშლისას SID უქმდება და ხელახლა აღარასდროს გამოიყენება.");
+D(1,"Standalone Server","Windows Server, რომელიც არის Workgroup-ის წევრი და არ შედის Active Directory დომენში.");
+D(1,"ჰიპერვიზორი Type 1 (Bare-metal)","ჰიპერვიზორი, რომელიც ინსტალირდება პირდაპირ ფიზიკურ აპარატურაზე მასპინძელი OS-ის გარეშე; მაღალი წარმადობა (მაგ. Hyper-V, VMware ESXi, KVM).");
+D(1,"ჰიპერვიზორი Type 2 (Hosted)","ჰიპერვიზორი, რომელიც ინსტალირდება არსებულ მასპინძელ OS-ზე (Host OS); VM-ები აპარატურას წვდებიან ჰიპერვიზორისა და Host OS-ის გავლით (მაგ. VMware Workstation, VirtualBox).");
+D(1,"ISO ფაილი","ოპტიკური დისკის (DVD/CD) სექტორული, ზუსტი ციფრული ასლი/არქივი; გამოიყენება OS-ის ინსტალაციისთვის VM-ში ან იწერება DVD/USB-ზე (Rufus, Burnaware).");
+D(1,"Rack-mountable server","სერვერი, რომელიც თავსდება ვერტიკალურ თაროში (Rack); სიმაღლე იზომება იუნიტებში (1U = 1.75 ინჩი); იზიარებს KVM-ს, UPS-ს, SAN-ს.");
+D(1,"Blade server","მცირე ზომის მოდულური სერვერი („ბლეიდი“), რომელიც თავსდება საერთო შასიში (Chassis) სივრცისა და ენერგიის დაზოგვისთვის.");
+D(1,"Tower server","ვერტიკალურად მდგომი, ცალკე კორპუსის მქონე სერვერი (PC-ის მსგავსი); გამოიყენება SOHO გარემოში ან ტესტირებისთვის.");
+D(1,"System Insights","Windows Server 2019-ის პროგნოზირებადი ანალიტიკის ფუნქცია, რომელიც მანქანური სწავლებით ლოკალურად აანალიზებს CPU-ს, ქსელისა და საცავის მოხმარების ტენდენციებს.");
+D(1,"Windows Admin Center","ვებ-ბრაუზერზე დაფუძნებული სერვერის მართვის თანამედროვე აპლიკაცია სერვერების, Server Core-ის, კლასტერების, Hyper-V-ისა და Azure-ის ცენტრალიზებული მართვისთვის.");
+D(1,"Hybrid cloud support","ლოკალური (On-premises) სერვერების ინტეგრაცია Azure-თან: Azure Backup, Azure File Sync, Azure Site Recovery, Azure Update Management.");
+D(1,"Storage Migration Service","WS2019-ის ფუნქცია, რომელიც ავტომატურად ახდენს მონაცემების, შეარების, უსაფრთხოების პარამეტრებისა და სერვერის იდენტობის მიგრაციას ძველი სერვერებიდან ახალ WS2019-ზე ან Azure-ში.");
+D(1,"Storage Replica","ტომების ბლოკურ დონეზე სინქრონული ან ასინქრონული რეპლიკაცია სერვერებს/კლასტერებს შორის Disaster Recovery-სა და Stretch Cluster-ისთვის.");
+D(1,"Storage Spaces","ფუნქცია, რომელიც რამდენიმე ფიზიკურ დისკს აერთიანებს ერთ დიდ და ხარვეზგამძლე ტომად.");
+D(1,"Microsoft Defender ATP","უსაფრთხოების პლატფორმა მავნე პროგრამების, Zero-day შეტევებისა და რუტკიტების პრევენციისთვის; საეჭვო ფაილებს აგზავნის Azure ღრუბელში ანალიზისთვის.");
+D(1,"IPv4","32-ბიტიანი მისამართი, 4 ოქტეტი (მაგ. 192.168.1.10), იყოფა Network ID-ად და Host ID-ად; სივრცე პრაქტიკულად ამოწურულია.");
+D(1,"IPv6","128-ბიტიანი მისამართი, უზარმაზარი მისამართების სივრცე, ავტომატური კონფიგურაციის მხარდაჭერა (ICMPv6).");
+D(1,"P2P (Peer-to-Peer / Workgroup)","ქსელის არქიტექტურა, სადაც ყველა კომპიუტერი თანაბარია; თითოეული თავად მართავს თავის რესურსებს, მომხმარებლებსა და უსაფრთხოებას; ჰოსტი არის კლიენტიც და სერვერიც.");
+D(1,"WDS (Windows Deployment Services)","სერვისი Windows Server-ის ქსელის გავლით (Network installation) დასაინსტალირებლად.");
+D(1,"sconfig.cmd","Server Core გარემოს ტექსტური მართვის ინსტრუმენტი (Windows Server Configuration Wizard).");
+D(1,"Server Manager","ცენტრალიზებული გრაფიკული მართვის კონსოლი სერვერის როლებისა და ფუნქციების კონფიგურაციისთვის.");
+D(1,"MMC Snap-in","Microsoft Management Console-ის სპეციალიზებული გრაფიკული ინსტრუმენტი (მაგ. Disk Management, Event Viewer, Device Manager, lusrmgr.msc).");
+D(1,"lusrmgr.msc","Local Users and Groups — MMC ინსტრუმენტი ლოკალური მომხმარებლებისა და ჯგუფების სამართავად.");
+D(1,"ოპერაციული სისტემა","პროგრამული უზრუნველყოფა, რომელიც მართავს კომპიუტერის აპარატურულ და პროგრამულ რესურსებს და უზრუნველყოფს პლატფორმას აპლიკაციების გასაშვებად.");
+D(1,"სასერვერო ოპერაციული სისტემა","სპეციალიზებული OS, ოპტიმიზებული რესურსების გაზიარების, დიდი დატვირთვის, მაღალი წარმადობისა და კლიენტებისთვის სერვისების საიმედო მიწოდებისთვის.");
+D(1,"კომპიუტერული ქსელი","ერთმანეთთან დაკავშირებული კომპიუტერებისა და მოწყობილობების ჯგუფი, რომლის მიზანია რესურსების (მონაცემები, სერვისები, პერიფერია) გაზიარება.");
+D(1,"ReFS","Windows Server-ის ფაილური სისტემა (NTFS-თან ერთად), რომელიც მონაცემთა საცავების არქიტექტურის ნაწილია.");
+D(1,"ECC RAM","შეცდომების გასწორების მხარდაჭერის მქონე ოპერატიული მეხსიერება — სერვერის RAM-ის შერჩევის მნიშვნელოვანი კრიტერიუმი.");
+D(1,"TPM (Trusted Platform Module)","დედაპლატაზე არსებული ჩიპი უსაფრთხოებისა და შიფრაციისთვის.");
+
+O(1,"რა არის ოპერაციული სისტემა?","პროგრამული უზრუნველყოფა, რომელიც მართავს კომპიუტერის აპარატურულ (Hardware) და პროგრამულ რესურსებს და უზრუნველყოფს პლატფორმასა და სერვისებს სხვადასხვა აპლიკაციის გასაშვებად.");
+O(1,"რა არის ქსელური ოპერაციული სისტემა (NOS)?","პროგრამული უზრუნველყოფა, რომელსაც შეუძლია ქსელური რესურსების, ფაილების, აპლიკაციებისა და ვებ-სერვისების მართვა, შენახვა და მიწოდება, ასევე მომხმარებლების, კომპიუტერებისა და უსაფრთხოების ცენტრალიზებული ადმინისტრირება (მაგ. Windows Server, Linux Server, macOS Server).");
+O(1,"რა არის სასერვერო ოპერაციული სისტემა?","სპეციალიზებული OS, რომელიც ოპტიმიზებულია ქსელში რესურსების გაზიარების, დიდი დატვირთვის დამუშავების, მაღალი წარმადობისა და კლიენტებისთვის ქსელური სერვისების საიმედოდ მიწოდებისთვის.");
+O(1,"რა არის კომპიუტერული ქსელი?","ერთმანეთთან დაკავშირებული კომპიუტერებისა და მოწყობილობების ჯგუფი, რომლის ძირითადი დანიშნულებაა რესურსების (მონაცემები, ქსელური სერვისები, პერიფერიული მოწყობილობები) გაზიარება.");
+O(1,"რა სხვაობაა ჰოსტსა (host) და ნოუდს (node) შორის?","ჰოსტი — ქსელური ინტერფეისის მქონე მოწყობილობა IP მისამართით, რომელიც ითხოვს ან გასცემს რესურსებს (კლიენტი, სერვერი, როუტერი). ნოუდი — ნებისმიერი მოწყობილობა, რომელიც იღებს/გადასცემს მონაცემებს, მაგრამ ძირითად ინტერფეისს შეიძლება არ ჰქონდეს IP (მაგ. სვიჩი). ყველა ჰოსტი ნოუდია, მაგრამ ყველა ნოუდი ჰოსტი არ არის.");
+O(1,"რა მეთოდები არსებობს Windows Server 2019-ის შესაქმნელად და დასაინსტალირებლად?","1) Clean installation — DVD/USB/ISO-დან; 2) Network installation — WDS-ით; 3) Unattended installation — Windows ADK და MDT; 4) In-place upgrade — არსებული OS-ის განახლება; 5) Migration — როლების/მონაცემების გადატანა WSMT-ით; 6) Virtual Machine installation — ISO-ს ვირტუალურ DVD-ზე მიერთებით.");
+O(1,"რა ვერსიები (Editions) გააჩნია Windows Server 2019-ს?","Essentials — მცირე ორგანიზაციებისთვის (25 მომხმარებელი / 50 მოწყობილობა); Standard — საშუალო ორგანიზაციებისთვის, 2 VM; Datacenter — დიდი მონაცემთა ცენტრები/ღრუბელი, ულიმიტო ვირტუალიზაცია; სპეციალიზებული: Windows Storage Server 2019 და Microsoft Hyper-V Server 2019 (უფასო ჰიპერვიზორი).");
+O(1,"რა ხელსაწყოები (თულები) აქვს შემოთავაზებული ადმინისტრატორს?","Server Manager (გრაფიკული კონსოლი როლებისთვის); Windows PowerShell / cmdlets (სკრიპტინგი/ავტომატიზაცია); Windows Admin Center (ვებ-ბრაუზერზე დაფუძნებული); MMC Snap-ins (Disk Management, Event Viewer, Device Manager, Local Users & Groups, AD ინსტრუმენტები); sconfig.cmd (Server Core-ისთვის).");
+O(1,"ზომისა და ფორმ-ფაქტორის მიხედვით რა სახის სერვერები გამოიყოფა?","1) Rack-mountable — თაროში, სიმაღლე იუნიტებში (1U=1.75 ინჩი); 2) Blade — მოდულური, საერთო შასიში; 3) Tower — ცალკე მდგომი, PC-ის მსგავსი კორპუსი, SOHO/ტესტირება.");
+O(1,"რა განსხვავებაა ჰიპერვიზორ Type 1-სა და Type 2-ს შორის?","Type 1 (Bare-metal) — პირდაპირ აპარატურაზე, Host OS-ის გარეშე, მაღალი წარმადობა (Hyper-V, ESXi, KVM). Type 2 (Hosted) — არსებულ Host OS-ზე, VM-ები აპარატურას წვდებიან ჰიპერვიზორისა და Host OS-ის გავლით (VMware Workstation, VirtualBox).");
+O(1,"ჩამოწერე ტიპიური პოსტ-ინსტალაციური ამოცანები.","1) დრო და Time Zone; 2) IP კონფიგურაცია (სტატიკური IP, Subnet mask, Gateway, DNS); 3) კომპიუტერის სახელის შეცვლა და დომენში/ჯგუფში გაწევრიანება; 4) Firewall-ის წესები; 5) Remote Desktop-ის ჩართვა; 6) თანამედროვე ბრაუზერი და IE ESC-ის გათიშვა; 7) Windows Update; 8) აქტივაცია.");
+O(1,"IP-ის რა ვერსიები გამოიყენება პრაქტიკაში და რა სხვაობაა მათ შორის?","IPv4 — 32-ბიტიანი, 4 ოქტეტი (192.168.1.10), Network ID + Host ID, სივრცე ამოწურულია. IPv6 — 128-ბიტიანი, უზარმაზარი სივრცე, ავტომატური კონფიგურაცია (ICMPv6).");
+O(1,"სერვერის ფიზიკურ კომპლექტაციაში რა კომპონენტებს უნდა მივაქციოთ ყურადღება?","CPU (სიხშირე, ქეში, ბირთვები, 64-ბიტი, Intel VT/AMD-V SLAT-ით); RAM (მოცულობა, ECC, გაფართოება); დისკები (SSD/NVMe/SAS/SATA, სიჩქარე, RAID კონტროლერი); NIC (1/10 Gbps, PXE, NIC Teaming); კვება/გაგრილება (Redundant PSU, UPS); დედაპლატა/BIOS (UEFI, TPM).");
+O(1,"რა ვარიანტებია შემოთავაზებული Evaluation Center-ზე Windows Server 2019-ის გასატესტად?","უფასო 180-დღიანი საცდელი ვერსია ფორმატებში: ISO იმიჯი, VHD (Virtual Hard Disk), Azure-ში ტესტირება; ასევე Server Core App Compatibility Feature on Demand (FOD) პაკეტი.");
+O(1,"რას წარმოადგენს ISO ფაილი?","ოპტიკური დისკის (DVD/CD) სექტორული ზუსტი ციფრული ასლი/არქივი. გამოიყენება OS-ის ჩასატვირთად VM-ში (ვირტუალურ DVD-ზე მიერთებით) ან იწერება DVD-ზე/ჩატვირთვად USB-ზე (Burnaware, Rufus).");
+O(1,"რა სამი ძირითადი მეთოდია Windows Server-ის ადმინისტრირებისთვის?","1) GUI — Server Manager და MMC Snap-ins; 2) Windows PowerShell — cmdlets და სკრიპტები; 3) Windows Admin Center — ვებ-ბრაუზერზე დაფუძნებული მართვა.");
+O(1,"რას მოიცავს Windows Server-ში მონაცემთა საცავების (Data Storage) არქიტექტურა?","ლოკალური საცავები და ფაილური სისტემები (NTFS, ReFS, Basic/Dynamic დისკები, MBR/GPT); RAID (პროგრამული, ფირმვერული, აპარატურული; RAID 0,1,5); SDS (Storage Pools, Virtual Disks, Storage Spaces, S2D); ქსელური საცავები SAN/NAS (iSCSI, Fibre Channel, MPIO, SMB, NFS); ოპტიმიზაცია (Data Deduplication, Storage Tiers, Storage Pinning, Storage Replica, Storage Migration Service).");
+O(1,"დაახასიათეთ P2P ქსელის არქიტექტურა.","P2P-ში (Workgroup) კომპიუტერებს არ აქვთ ფიქსირებული როლები; ყველა თანაბარია; თითოეული დამოუკიდებლად მართავს რესურსებს, მომხმარებლებსა და უსაფრთხოებას. ჰოსტი კლიენტია, როცა ითხოვს რესურსს, და სერვერი, როცა გასცემს.");
+O(1,"დაახასიათეთ Rack-mountable servers.","თავსდება სერვერულ ოთახებში/მონაცემთა ცენტრებში ვერტიკალურ თაროებში; სიმაღლე იუნიტებით (1U = 1.75 ინჩი; 1U, 2U, 4U); იზიარებენ საერთო კომპონენტებს — KVM სვიჩი, UPS, SAN.");
+O(1,"დაახასიათეთ Blade servers.","მცირე ზომის მოდულური სერვერები („ბლეიდები“), მონტაჟდება საერთო შასიში (Chassis) სივრცისა და ენერგიის დასაზოგად; გამოიყენება მონაცემთა ცენტრებსა და სუპერკომპიუტერულ ობიექტებში.");
+O(1,"დაახასიათეთ Tower servers.","ვერტიკალურად მდგომი, ცალკე დიდი კორპუსის მქონე სერვერები (PC-ის მსგავსი); გამოიყენება ტესტირებისთვის ან SOHO (Small Office/Home Office) გარემოში.");
+O(1,"რაში გამოიყენება System Insights?","WS2019-ის პროგნოზირებადი ანალიტიკა — მანქანური სწავლებით ლოკალურად აანალიზებს CPU-ს, ქსელისა და საცავის მოხმარების ტენდენციებს და წინასწარ პროგნოზირებს რესურსების ნაკლებობას.");
+O(1,"რაში გამოიყენება Windows Admin Center?","ვებ-ბრაუზერზე დაფუძნებული მართვის აპლიკაცია Windows სერვერების, Server Core-ის, კლასტერების, Hyper-V-ისა და Azure სერვისების ცენტრალიზებული მართვისთვის სრული GUI-ს ან MMC-ის გარეშე.");
+O(1,"რაში გამოიყენება hybrid cloud support?","ლოკალური სერვერების ინტეგრაციისთვის Azure-თან: Azure Backup, Azure File Sync, Azure Site Recovery (კატასტროფისგან აღდგენა), Azure Update Management.");
+O(1,"რაში გამოიყენება Storage Migration Service?","მონაცემების, გაზიარებული საქაღალდეების, უსაფრთხოების პარამეტრებისა და სერვერის იდენტობის ავტომატური მიგრაციისთვის ძველი Windows Server-ებიდან WS2019-ზე ან Azure-ში.");
+O(1,"რაში გამოიყენება Storage Replica?","ტომების ბლოკურ დონეზე სინქრონული/ასინქრონული რეპლიკაციისთვის სერვერებს ან კლასტერებს შორის — Disaster Recovery და Stretch Cluster.");
+O(1,"რაში გამოიყენება Microsoft Defender ATP?","Malware-ის, Zero-day შეტევებისა და რუტკიტების პროაქტიული პრევენციისთვის, საფრთხეების გამოვლენის, ავტომატიზებული გამოძიებისა და რეაგირებისთვის; საეჭვო ფაილებს აანალიზებს Azure ღრუბელში.");
+// --- ტრანსფორმირებული ღია კითხვები (ტესტებიდან/განმარტებებიდან) ---
+O(1,"ჩამოთვალეთ ქსელის ტიპები გეოგრაფიული არეალის მიხედვით და დაახასიათეთ.","PAN — პერსონალური, მცირე სივრცე (Bluetooth/Wi-Fi); LAN — ოთახი/შენობა; MAN — ქალაქის მასშტაბის LAN-ების გაერთიანება; WAN — დიდი გეოგრაფიული სივრცე, სატელეკომუნიკაციო არხები/სატელიტები (ინტერნეტი).",true);
+O(1,"რა განსხვავებაა On-premises და Cloud სერვერებს შორის?","On-premises — ფიზიკურად ორგანიზაციის შენობაში/კერძო სერვერულშია. Cloud — ინტერნეტში არსებულ მონაცემთა ცენტრში (ღრუბელში), წვდომა დისტანციურად.",true);
+O(1,"რა არის კლასტერი და რა მიზნით იქმნება?","ორი ან მეტი დამოუკიდებელი სერვერი, რომლებიც მუშაობენ როგორც ერთიანი სისტემა — მაღალი ხელმისაწვდომობისა (High Availability) და ხარვეზგამძლეობისთვის (Fault Tolerance).",true);
+O(1,"რა განსხვავებაა User Rights-სა და Permissions-ს შორის?","User Rights — სისტემური დონის უფლებამოსილებები (სისტემაში შესვლა, გათიშვა, Backup). Permissions — კონკრეტულ რესურსზე (ფაილი, საქაღალდე, პრინტერი) წვდომის წესები (Read, Write, Full Control).",true);
+O(1,"სად ინახება ლოკალური მომხმარებლები და ჯგუფები და რით იმართება გრაფიკულად?","ინახება ლოკალურ SAM (Security Accounts Manager) ბაზაში (პაროლების ჰეშებით); გრაფიკულად იმართება lusrmgr.msc-ით (Local Users and Groups).",true);
+O(1,"რა ემართება SID-ს მომხმარებლის წაშლისას? რა მოხდება, თუ იმავე სახელით ახალ მომხმარებელს შევქმნით?","SID უქმდება და ხელახლა აღარასდროს გამოიყენება; იმავე სახელით შექმნილ ახალ მომხმარებელს სრულიად ახალი SID მიენიჭება (ძველი უფლებები არ გადმოყვება).",true);
+O(1,"ჩამოწერეთ CMD ბრძანებები ლოკალური მომხმარებლების სანახავად, დასამატებლად, ჯგუფში ჩასამატებლად და წასაშლელად.","სია: net user; დამატება: net user Name Password /add; ჯგუფში დამატება: net localgroup GroupName UserName /add; ჯგუფების სია: net localgroup; წაშლა: net user Name /delete; გააქტიურება: net user Name /active:yes.",true);
+O(1,"ჩამოწერეთ PowerShell cmdlet-ები ლოკალური მომხმარებლებისა და ჯგუფების სამართავად.","New-LocalUser, Remove-LocalUser, Disable-LocalUser / Enable-LocalUser, Get-LocalUser, New-LocalGroup, Add-LocalGroupMember; სტატუსის შესამოწმებლად WMI კლასი Win32_UserAccount. (New-ADGroup — AD დომენისთვისაა, არა ლოკალურისთვის.)",true);
+O(1,"რომელი ჩაშენებული ანგარიშია ინსტალაციის შემდეგ გათიშული და რატომ?","Guest — ნაგულისხმევად Disabled-ია უსაფრთხოების მიზნით.",true);
+O(1,"რას ეწოდება Standalone Server?","Windows Server-ს, რომელიც Workgroup-ის წევრია და არ შედის Active Directory დომენში.",true);
+O(1,"რომელი ფუნქცია აერთიანებს რამდენიმე ფიზიკურ დისკს ერთ დიდ ტომად და რით განსხვავდება Storage Replica-სგან?","Storage Spaces — რამდენიმე ფიზიკური დისკი ერთიან დიდ, ხარვეზგამძლე ტომად. Storage Replica კი ტომებს ბლოკურ დონეზე არეპლიცირებს სერვერებს/კლასტერებს შორის Disaster Recovery-სთვის.",true);
+O(1,"რომელ ჰიპერვიზორებს მიეკუთვნება Hyper-V, VMware ESXi, KVM, VMware Workstation, VirtualBox?","Type 1 (Bare-metal): Hyper-V, VMware ESX/ESXi, Linux KVM. Type 2 (Hosted): VMware Workstation, Oracle VirtualBox.",true);
+
+T(1,"Microsoft Defender-ის რომელი კომპონენტი შეიძლება იყოს გამოყენებული cloud-ზე დაფუძნებული საფრთხის ანალიზისთვის Windows Server 2019-ში?",["Shielded virtual machines","IIS","ATP","Windows Defender Firewall"],2,"ATP საეჭვო ფაილებს აგზავნის Azure ღრუბელში სიღრმისეული ანალიზისთვის.",0);
+T(1,"CPU-ს მწარმოებელი ცნობილი ფირმების წყვილია?",["Sokari & Nikora","Intel & AMD","Windows & MacOS","Google & Sony"],1,"Intel და AMD — პროცესორების ორი ძირითადი მწარმოებელი (Intel VT / AMD-V).",0);
+T(1,"Windows Server 2019-ის რომელი ფუნქცია გაძლევთ საშუალებას შექმნათ დიდი მოცულობები, რომლებიც მოიცავს მრავალ ფიზიკურ შესანახ მოწყობილობას?",["Storage Spaces","ReFS","Storage Migration Service","Storage Replicas"],0,"Storage Spaces რამდენიმე ფიზიკურ დისკს აერთიანებს ერთ ტომად.",0);
+T(1,"რომელი განეკუთვნება კომპიუტერული ქსელის არქიტექტურას?",["NOS","NTFS","P2S","P2P"],3,"P2P (Peer-to-Peer / Workgroup) ქსელის არქიტექტურაა.",0);
+T(1,"სერვერის ფიზიკურ კომპლექტაციაში რომელია მნიშვნელოვანი კომპონენტი?",["GPU","RAM memory","USB port","CD/DVD room"],1,"RAM კრიტიკული რესურსია ვირტუალიზაციისა და როლებისთვის.",0);
+T(1,"სად ინახება Windows-ის ლოკალური მომხმარებლებისა და ჯგუფების ანგარიშები?",["Active Directory Database","SAM (Security Accounts Manager) database","SYSVOL folder","DNS Zone File"],1,"ლოკალური ანგარიშები და პაროლის ჰეშები SAM ბაზაშია.",0);
+T(1,"რომელი გრაფიკული Snap-in (.msc) გამოიყენება უშუალოდ ლოკალური მომხმარებლებისა და ჯგუფების მართვისთვის?",["dsa.msc","gpmc.msc","lusrmgr.msc","dns.msc"],2,"lusrmgr.msc = Local Users and Groups.",0);
+T(1,"Windows Server-ის ინსტალაციის შემდეგ რომელი ჩაშენებული ანგარიშია დეაქტივირებული (Disabled) უსაფრთხოების მიზნით?",["Administrator","Guest","DefaultAccount","SYSTEM"],1,"Guest ნაგულისხმევად გათიშულია.",0);
+T(1,"CMD-ში რომელი ბრძანებით არის შესაძლებელი ლოკალური მომხმარებლების სრული სიის ნახვა?",["get localuser","net user","net group","show users"],1,"net user გამოიტანს ლოკალური ანგარიშების სიას.",0);
+T(1,"CMD-ში რომელი ბრძანება გამოიყენება მომხმარებლის John ლოკალურ ჯგუფში Sales დასამატებლად?",["net user Sales John /add","net localgroup Sales John /add","net group Sales John /insert","add user John Sales"],1,"სინტაქსი: net localgroup <Group> <User> /add.",0);
+T(1,"რომელი PowerShell cmdlet გამოიყენება ახალი ლოკალური ჯგუფის შესაქმნელად?",["New-ADGroup","New-LocalGroup","Add-LocalGroup","Create-LocalGroup"],1,"New-ADGroup — AD დომენისთვისაა.",0);
+T(1,"მომხმარებლის ანგარიშის წაშლისას რა ემართება მის SID-ს?",["SID ავტომატურად გადაეცემა იმავე სახელის მქონე ახალ ანგარიშს","SID ინახება რეზერვში და ხელახლა გამოიყენება","SID უქმდება და აღარასდროს გამოიყენება ხელახლა","SID გადადის Guest ანგარიშზე"],2,"იმავე სახელით ახალ ანგარიშსაც ახალი SID ენიჭება.",0);
+T(1,"რომელი cmdlet-ით არის შესაძლებელი ლოკალური მომხმარებლის Nick-ის დეაქტივაცია PowerShell-ში?",["Set-LocalUser -Disable Nick","Disable-LocalUser -Name \"Nick\"","Stop-LocalUser \"Nick\"","Remove-LocalUser -Disable Nick"],1,"დეაქტივაცია — Disable-LocalUser.",0);
+T(1,"რომელი WMI კლასი გამოიყენება PowerShell-ში ლოკალური ანგარიშების, მათი ბლოკირებისა და სტატუსის შესამოწმებლად?",["Win32_LogicalDisk","Win32_OperatingSystem","Win32_UserAccount","Win32_Process"],2,"Win32_UserAccount — Name, Domain, Lockout, Disabled.",0);
+T(1,"Workgroup გარემოში მყოფი სერვერი, რომელიც არ არის დომენის წევრი, მოიხსენიება როგორც:",["Domain Controller","Standalone Server","Read-Only Domain Controller","Enterprise Root"],1,"Workgroup-ის წევრი სერვერი = Standalone Server.",0);
+// ---- ვარიანტები ----
+T(1,"ჩამოთვლილთაგან რომელი არ არის Windows Server 2019-ის ინსტალაციის მეთოდი?",["Clean installation","Network installation (WDS)","In-place upgrade","Group Policy installation"],3,"მეთოდებია: Clean, Network (WDS), Unattended (ADK/MDT), In-place upgrade, Migration (WSMT), VM installation.");
+T(1,"Windows Server 2019-ის ქსელის გავლით ინსტალაციისთვის გამოიყენება:",["WSUS","WDS (Windows Deployment Services)","WSMT","DFS"],1,"Network installation — WDS სერვერით.");
+T(1,"ავტომატიზებული (Unattended) ინსტალაციისთვის გამოიყენება:",["Windows ADK და MDT","WDS და DHCP","Rufus და Burnaware","Server Manager და WAC"],0,"Unattended installation — Windows ADK + MDT.");
+T(1,"როლებისა და მონაცემების მიგრაცია ძველი სერვერიდან ახალზე ხორციელდება ინსტრუმენტით:",["MDT","WSMT","WDS","IPAM"],1,"Migration — WSMT ინსტრუმენტით.");
+T(1,"Windows Server 2019-ის რომელი გამოცემაა განკუთვნილი მცირე ორგანიზაციებისთვის (25 მომხმარებლამდე / 50 მოწყობილობამდე)?",["Standard","Datacenter","Essentials","Hyper-V Server"],2,"Essentials — 25 user / 50 device.");
+T(1,"Windows Server 2019-ის რომელი გამოცემა უჭერს მხარს ულიმიტო ვირტუალიზაციას?",["Essentials","Standard","Datacenter","Storage Server"],2,"Datacenter — ულიმიტო VM; Standard — 2 VM.");
+T(1,"რამდენ ვირტუალურ მანქანას უჭერს მხარს Windows Server 2019 Standard Edition?",["1","2","10","ულიმიტოს"],1,"Standard — 2 ვირტუალური მანქანა.");
+T(1,"რომელია Microsoft-ის უფასო დამოუკიდებელი ჰიპერვიზორი?",["Windows Server 2019 Essentials","Microsoft Hyper-V Server 2019","Windows Storage Server 2019","VMware Workstation"],1,"Hyper-V Server 2019 — უფასო ჰიპერვიზორი.");
+T(1,"ჩამოთვლილთაგან რომელი არ არის Windows Server 2019-ის გამოცემა (Edition)?",["Essentials","Standard","Datacenter","Professional"],3,"Professional კლიენტური Windows-ის გამოცემაა.");
+T(1,"რომელი ინსტრუმენტია განკუთვნილი Server Core გარემოს ტექსტური მართვისთვის?",["Server Manager","sconfig.cmd","lusrmgr.msc","Event Viewer"],1,"sconfig.cmd — Windows Server Configuration Wizard.");
+T(1,"რომელია ვებ-ბრაუზერზე დაფუძნებული სერვერის მართვის თანამედროვე აპლიკაცია?",["Server Manager","MMC","Windows Admin Center","sconfig"],2,"Windows Admin Center მუშაობს ბრაუზერიდან.");
+T(1,"ჩამოთვლილთაგან რომელი არ მიეკუთვნება Windows Server-ის ადმინისტრირების სამ ძირითად მეთოდს?",["GUI (Server Manager, MMC)","Windows PowerShell","Windows Admin Center","Microsoft Word მაკროები"],3,"სამი მეთოდი: GUI, PowerShell, Windows Admin Center.");
+T(1,"ჩამოთვლილთაგან რომელი არ არის MMC Snap-in?",["Disk Management","Event Viewer","Device Manager","Windows Media Player"],3,"MMC Snap-ins: Disk Management, Event Viewer, Device Manager, Local Users & Groups და ა.შ.");
+T(1,"ზომისა და ფორმ-ფაქტორის მიხედვით რომელი არ არის სერვერის ტიპი?",["Rack-mountable","Blade","Tower","Cloud"],3,"სამი ტიპი: Rack, Blade, Tower. Cloud — განთავსების ადგილია და არა ფორმ-ფაქტორი.");
+T(1,"რას უდრის 1U რაკ-სერვერის სიმაღლის ერთეული?",["1 ინჩი","1.75 ინჩი","2.5 ინჩი","19 ინჩი"],1,"1U = 1.75 ინჩი.");
+T(1,"რომელი სერვერი თავსდება საერთო შასიში (Chassis) სივრცისა და ენერგიის დაზოგვის მიზნით?",["Tower","Blade","Rack-mountable","Standalone"],1,"Blade სერვერები — მოდულური, საერთო შასიში.");
+T(1,"რომელი ტიპის სერვერი გამოიყენება ძირითადად SOHO გარემოში ან ტესტირებისთვის?",["Blade","Rack","Tower","Cluster"],2,"Tower — ცალკე მდგომი, PC-ის მსგავსი.");
+T(1,"რაკ-სერვერები თაროზე იზიარებენ საერთო კომპონენტებს. რომელი არ არის მათ შორის?",["KVM სვიჩი","UPS","SAN საცავი","GPU ვიდეობარათი"],3,"იზიარებენ KVM-ს, UPS-ს, SAN-ს.");
+T(1,"რომელი ჰიპერვიზორი არ არის Type 1 (Bare-metal)?",["Microsoft Hyper-V","VMware ESXi","Linux KVM","Oracle VirtualBox"],3,"VirtualBox — Type 2 (Hosted).");
+T(1,"რომელი ჰიპერვიზორია Type 2 (Hosted)?",["VMware Workstation","VMware ESXi","Hyper-V","KVM"],0,"Type 2: VMware Workstation, VirtualBox.");
+T(1,"Type 1 ჰიპერვიზორის მახასიათებელია:",["ინსტალირდება არსებულ Host OS-ზე","ინსტალირდება პირდაპირ ფიზიკურ აპარატურაზე","მუშაობს მხოლოდ ბრაუზერში","არ საჭიროებს CPU ვირტუალიზაციას"],1,"Bare-metal — პირდაპირ აპარატურაზე.");
+T(1,"რამდენბიტიანია IPv4 მისამართი?",["16","32","64","128"],1,"IPv4 — 32 ბიტი, 4 ოქტეტი.");
+T(1,"რამდენბიტიანია IPv6 მისამართი?",["32","64","128","256"],2,"IPv6 — 128 ბიტი.");
+T(1,"IPv4 მისამართი შედგება:",["4 ოქტეტისგან","6 ოქტეტისგან","8 ჰექსადეციმალური ბლოკისგან","2 ოქტეტისგან"],0,"მაგ. 192.168.1.10 — 4 ოქტეტი.");
+T(1,"ჩამოთვლილთაგან რომელი არ არის ტიპიური პოსტ-ინსტალაციური ამოცანა?",["Time Zone-ის გასწორება","სტატიკური IP-ის მინიჭება","Remote Desktop-ის ჩართვა","BIOS-ის ფირმვერის გადაწერა"],3,"პოსტ-ინსტალაცია: დრო, IP, სახელი/დომენი, Firewall, RDP, ბრაუზერი/IE ESC, Update, აქტივაცია.");
+T(1,"Evaluation Center-ზე Windows Server 2019-ის საცდელი ვერსია რამდენი დღით არის ხელმისაწვდომი?",["30","90","180","365"],2,"180-დღიანი Trial.");
+T(1,"ჩამოთვლილთაგან რომელი ფორმატი არ არის შემოთავაზებული Evaluation Center-ზე?",["ISO","VHD","Azure","APK"],3,"ფორმატები: ISO, VHD, Azure.");
+T(1,"რას წარმოადგენს ISO ფაილი?",["ვირტუალური მანქანის მეხსიერების ასლს","ოპტიკური დისკის ზუსტ სექტორულ ციფრულ ასლს","დაშიფრულ არქივს პაროლებით","DNS ზონის ფაილს"],1,"ISO — DVD/CD-ის ზუსტი ასლი.");
+T(1,"რომელი პროგრამით შეიძლება ISO-ს ჩაწერა ჩატვირთვად USB-ზე?",["Rufus","IIS","WSUS","Hyper-V"],0,"Rufus/Burnaware.");
+T(1,"სერვერის RAM-ის შერჩევისას რომელი მახასიათებელია მნიშვნელოვანი შეცდომების გასწორებისთვის?",["RGB განათება","ECC მხარდაჭერა","DDR2","Dual Channel მხოლოდ"],1,"ECC — შეცდომების გასწორება.");
+T(1,"Hyper-V-სთვის პროცესორის რა აპარატურული მხარდაჭერაა საჭირო?",["Intel VT / AMD-V SLAT-ით","Hyper-Threading მხოლოდ","Turbo Boost","32-ბიტიანი არქიტექტურა"],0,"64-ბიტიანი CPU Intel VT/AMD-V და SLAT.");
+T(1,"რომელი ჩიპი გამოიყენება დედაპლატაზე უსაფრთხოებისა და შიფრაციისთვის?",["TPM","GPU","NIC","PXE"],0,"TPM — Trusted Platform Module.");
+T(1,"NIC-ის რომელი ფუნქცია იძლევა ქსელიდან ჩატვირთვის საშუალებას?",["NIC Teaming","PXE","ECC","SLAT"],1,"PXE — ქსელიდან ჩატვირთვა.");
+T(1,"რომელი ფუნქცია იყენებს მანქანურ სწავლებას სერვერის რესურსების მოხმარების პროგნოზირებისთვის?",["Storage Replica","System Insights","Windows Admin Center","Defender ATP"],1,"System Insights — პროგნოზირებადი ანალიტიკა.");
+T(1,"რომელი ფუნქცია ახდენს ტომების ბლოკურ დონეზე რეპლიკაციას Disaster Recovery-სთვის?",["Storage Spaces","Storage Migration Service","Storage Replica","Data Deduplication"],2,"Storage Replica — სინქრონული/ასინქრონული ბლოკური რეპლიკაცია.");
+T(1,"რომელი ფუნქცია ახდენს ძველი სერვერებიდან მონაცემების, შეარებისა და სერვერის იდენტობის მიგრაციას WS2019-ზე ან Azure-ში?",["Storage Migration Service","Storage Replica","System Insights","Hybrid cloud support"],0,"Storage Migration Service.");
+T(1,"ჩამოთვლილთაგან რომელი არ შედის hybrid cloud support-ში?",["Azure Backup","Azure File Sync","Azure Site Recovery","Print Spooler"],3,"Hybrid: Azure Backup, File Sync, Site Recovery, Update Management.");
+T(1,"Workgroup ქსელის არქიტექტურას ეწოდება:",["Client/Server","Peer-to-Peer (P2P)","Domain","Forest"],1,"Workgroup = P2P.");
+T(1,"P2P ქსელში ჰოსტი:",["მხოლოდ კლიენტია","მხოლოდ სერვერია","კლიენტია როცა ითხოვს რესურსს და სერვერი როცა გასცემს","არ შეუძლია რესურსის გაზიარება"],2,"P2P-ში ყველა თანაბარია.");
+T(1,"ქალაქის მასშტაბის ქსელს ეწოდება:",["PAN","LAN","MAN","WAN"],2,"MAN — Metropolitan Area Network.");
+T(1,"Bluetooth-ით დაკავშირებული პირადი მოწყობილობების ქსელია:",["PAN","LAN","MAN","WAN"],0,"PAN — Personal Area Network.");
+T(1,"ინტერნეტი არის მაგალითი:",["PAN-ის","LAN-ის","MAN-ის","WAN-ის"],3,"WAN — ფართო არეალის ქსელი.");
+T(1,"ჩამოთვლილთაგან რომელი არის ნოუდი, მაგრამ არ არის ჰოსტი?",["სერვერი","კლიენტი კომპიუტერი","ქსელური სვიჩი (IP-ს გარეშე)","როუტერი"],2,"სვიჩი იღებს/გადასცემს მონაცემებს IP-ს გარეშე.");
+T(1,"რომელი დებულებაა სწორი?",["ყველა ნოუდი არის ჰოსტი","ყველა ჰოსტი არის ნოუდი","ჰოსტს არ აქვს IP მისამართი","ნოუდს ყოველთვის აქვს IP"],1,"ყველა ჰოსტი ნოუდია, პირიქით — არა.");
+T(1,"ორი ან მეტი სერვერის გაერთიანებას High Availability-სა და Fault Tolerance-ისთვის ეწოდება:",["კლასტერი","დომენი","Workgroup","Blade"],0,"Cluster.");
+T(1,"რომელი ფაილური სისტემა უზრუნველყოფს DACL-ს, EFS შიფრაციას, კვოტებს და დედუპლიკაციას?",["FAT32","NTFS","exFAT","ISO9660"],1,"NTFS.");
+T(1,"რომელი არ არის ქსელური ოპერაციული სისტემის (NOS) მაგალითი?",["Windows Server","Linux Server","macOS Server","Microsoft Excel"],3,"Excel აპლიკაციაა.");
+T(1,"რომელი არ არის მონაცემთა საცავების არქიტექტურის ნაწილი Windows Server-ში?",["Storage Spaces Direct (S2D)","iSCSI SAN","Data Deduplication","Kerberos"],3,"Kerberos ავტენტიფიკაციის პროტოკოლია.");
+T(1,"რომელი პროტოკოლები გამოიყენება SAN ქსელურ საცავებში?",["iSCSI და Fibre Channel","SMTP და POP3","HTTP და FTP","LDAP და Kerberos"],0,"SAN — iSCSI ან FC.");
+T(1,"რომელი მახასიათებელი ეკუთვნის User Rights-ს და არა Permissions-ს?",["ფაილის წაკითხვა (Read)","საქაღალდეზე Full Control","სისტემის გათიშვა (Shut down)","პრინტერზე ბეჭდვა"],2,"User Rights — სისტემური მოქმედებები.");
+T(1,"ლოკალური მომხმარებლის ავტენტიფიკაციას ახორციელებს:",["Domain Controller","SAM ბაზა","DNS სერვერი","Global Catalog"],1,"Local User Account — SAM ბაზა.");
+T(1,"New-ADGroup cmdlet გამოიყენება:",["ლოკალური ჯგუფის შესაქმნელად","Active Directory დომენის ჯგუფის შესაქმნელად","ლოკალური მომხმარებლის წასაშლელად","DNS ზონის შესაქმნელად"],1,"ლოკალური ჯგუფისთვის — New-LocalGroup.");
+T(1,"რომელი ბრძანება წაშლის ლოკალურ მომხმარებელს CMD-ში?",["net user Name /delete","net localgroup Name /remove","del user Name","Remove-LocalUser Name /cmd"],0,"net user <Name> /delete.");
+
+// ===================== ქვიზი 2 =====================
+D(2,"AD (Active Directory)","Microsoft-ის იერარქიული და განაწილებული მონაცემთა ბაზა/დირექტორიის სერვისი (ITU X.500), რომელიც ცენტრალიზებულად ინახავს ქსელურ ობიექტებს (მომხმარებლები, კომპიუტერები, ჯგუფები) და უზრუნველყოფს ცენტრალიზებულ ავტენტიფიკაციას (SSO) და წვდომის მართვას.");
+D(2,"DNS (Domain Name System)","იერარქიული სახელთა სისტემა, რომელიც FQDN სახელებს გარდაქმნის IP მისამართებად (და პირიქით); AD-ში აუცილებელია DC-ების მოსაძებნად SRV ჩანაწერებით.");
+D(2,"OU (Organizational Unit)","AD-ის კონტეინერული ობიექტი (საქაღალდის მსგავსი) Leaf ობიექტების ან child OU-ების დასაჯგუფებლად, ადმინისტრირებისა და GPO-ების მისაბმელად.");
+D(2,"DC (Domain Controller)","სერვერი, რომელზეც გაშლილია AD DS როლი და ინახება AD ბაზა; პასუხისმგებელია ავტენტიფიკაციასა და რესურსებზე წვდომის გაცემაზე.");
+D(2,"LDAP (Lightweight Directory Access Protocol)","სტანდარტული პროტოკოლი AD ბაზაში ობიექტების მოსაძებნად, წასაკითხად და მოდიფიკაციისთვის.");
+D(2,"Child Domain","დომენი, რომელიც იქმნება მშობელი დომენის ქვემოთ იმავე ხეში და იზიარებს მის სახელთა სივრცეს (მაგ. east.domainX.com).");
+D(2,"Member Server","Windows Server, რომელიც დომენის წევრია, მაგრამ არ არის DC და არ ინახავს AD ბაზის ასლს.");
+D(2,"დომენი (Domain)","მომხმარებლების, კომპიუტერებისა და რესურსების ლოგიკური გაერთიანება, სადაც ავტენტიფიკაცია და უსაფრთხოება ცენტრალიზებულად იმართება DC-ის მიერ; AD-ის ძირითადი ლოგიკური ერთეული.");
+D(2,"ხე (Domain Tree)","ერთი ან რამდენიმე დომენი, რომლებიც იზიარებენ საერთო DNS სახელთა სივრცეს (Contiguous namespace) და დაკავშირებულია ორმხრივი ტრანზიტული ნდობით.");
+D(2,"ტყე (Forest)","AD-ის ყველაზე დიდი ლოგიკური კონტეინერი და უსაფრთხოების საზღვარი; მოიცავს ერთ ან რამდენიმე ხეს; პირველ დომენს ეწოდება Forest Root Domain.");
+D(2,"სამუშაო ჯგუფი (Workgroup)","კომპიუტერების ლოგიკური გაერთიანება P2P არქიტექტურაში, ცენტრალური სერვერის გარეშე; თითოეული კომპიუტერი ინახავს თავის ლოკალურ SAM ბაზას.");
+D(2,"Namespace (სახელთა სივრცე)","იერარქიული დასახელების სტრუქტურა; საერთო ძირითადი DNS სახელი = Contiguous Namespace, სხვადასხვა ხის დომენები = Disjointed Namespace.");
+D(2,"Site (საიტი)","AD-ის ფიზიკური ტოპოლოგიის ობიექტი — IP სუბნეტების გაერთიანება, რომელიც წარმოადგენს ფიზიკურ ლოკაციას (LAN) და ოპტიმიზაციას უკეთებს რეპლიკაციასა და ავტენტიფიკაციას.");
+D(2,"Hostname","კომპიუტერის/მოწყობილობის უნიკალური ლოგიკური სახელი ქსელში, რომელიც გამოიყენება DNS/FQDN დასახელებებში.");
+D(2,"WINS (Windows Internet Name Service)","Microsoft-ის სერვისი, რომელიც NetBIOS სახელებს გარდაქმნის IP მისამართებად და ამცირებს ბროადქასტებს.");
+D(2,"GUID (Globally Unique Identifier)","128-ბიტიანი გლობალურად უნიკალური იდენტიფიკატორი, რომელიც ენიჭება AD-ის ყოველ ობიექტს და განასხვავებს მას მთელ ტყეში.");
+D(2,"GPO (Group Policy Object)","AD ობიექტი ცენტრალიზებული პარამეტრებითა და შეზღუდვებით (Computer Configuration და User Configuration), რომელიც ვრცელდება საიტზე, დომენზე ან OU-ზე.");
+D(2,"Hypervisor (ჰიპერვიზორი)","პროგრამული შრე, რომელიც მართავს ფიზიკურ რესურსებს და უზრუნველყოფს რამდენიმე OS-ის (VM) ერთდროულ გაშვებას; Hyper-V — Type 1.");
+D(2,"VMBus","Hyper-V-ის მაღალსიჩქარიანი ლოგიკური არხი, რომელიც აკავშირებს VSP-სა (Virtualization Service Provider) და VSC-ს (Virtualization Service Consumer).");
+D(2,"Snapshot / Checkpoint","Hyper-V-ის ფუნქცია, რომელიც იღებს VM-ის დისკისა და სისტემის მდგომარეობის ასლს დროის კონკრეტულ მომენტში, რათა შემდეგ დავაბრუნოთ ამ მდგომარეობაში.");
+D(2,"Nested Virtualization","Hyper-V-ის ფუნქცია, რომელიც იძლევა VM-ში Hyper-V-ის დაყენებისა და სხვა VM-ების გაშვების საშუალებას.");
+D(2,".vhdx","Hyper-V-ის თანამედროვე ვირტუალური დისკის ფორმატი 64 TB-მდე (ძველი .vhd — 2 TB-მდე).");
+D(2,"RODC (Read-Only Domain Controller)","წაკითხვადი DC ფილიალებისთვის დაბალი ფიზიკური უსაფრთხოების პირობებში; ინახავს AD ბაზის მხოლოდ წაკითხვად ასლს.");
+D(2,"Replication (რეპლიკაცია)","პროცესი, რომლის დროსაც AD ბაზის ცვლილებები ავტომატურად სინქრონიზდება DC-ებს შორის.");
+D(2,"Global Catalog (GC)","DC, რომელიც ინახავს ტყის ყველა ობიექტის ძირითადი ატრიბუტების ნაწილობრივ ასლს; სწრაფი ძიება და Universal ჯგუფების წევრობის შემოწმება.");
+D(2,"FSMO როლები","5 სპეციალური როლი, რომლებიც ერთ დროს მხოლოდ ერთ DC-ზეა: Schema Master, Domain Naming Master (ტყის დონე); PDC Emulator, RID Master, Infrastructure Master (დომენის დონე).");
+D(2,"Schema Master","ტყის დონის FSMO როლი — პასუხისმგებელია AD სქემის ცვლილებებზე.");
+D(2,"Domain Naming Master","ტყის დონის FSMO როლი — მართავს ტყეში დომენების დამატებას/წაშლას.");
+D(2,"PDC Emulator","დომენის დონის FSMO როლი — პაროლის ცვლილებების კოორდინაცია, დროის სინქრონიზაცია, ძველ სისტემებთან თავსებადობა.");
+D(2,"RID Master","დომენის დონის FSMO როლი — გასცემს RID დიაპაზონებს DC-ებზე უნიკალური SID-ების შესაქმნელად.");
+D(2,"Infrastructure Master","დომენის დონის FSMO როლი — კოორდინაციას უწევს ჯგუფების წევრობას, GUID-ებსა და DN-ებს დომენებს შორის.");
+D(2,"AD Schema (სქემა)","წესების ნაკრები, რომელიც განსაზღვრავს AD-ში ნებადართულ ობიექტთა ტიპებს (Classes) და მათ თვისებებს (Attributes).");
+D(2,"Leaf Object","ინდივიდუალური ობიექტი (User, Group, Computer, Printer), რომელიც სხვა ობიექტებს ვერ შეიცავს.");
+D(2,"DN / CN","LDAP ფორმატის დასახელებები, რომლებიც მიუთითებენ ობიექტის ზუსტ ადგილს AD იერარქიაში (მაგ. CN=J.Eckert,OU=IT,DC=domain1,DC=com).");
+D(2,"Security Group","ჯგუფის ტიპი, რომელიც გამოიყენება რესურსებზე უფლებებისა და ნებართვების ჯგუფურად მისანიჭებლად.");
+D(2,"Distribution Group","ჯგუფის ტიპი მხოლოდ ელფოსტის ჯგუფური დაგზავნისთვის (მაგ. Exchange); უსაფრთხოების ნებართვები ვერ მიენიჭება.");
+D(2,"Domain Local Group","სკოუპი: წევრები ტყის ნებისმიერი დომენიდან, ნებართვები — მხოლოდ იმავე დომენის რესურსებზე.");
+D(2,"Global Group","სკოუპი: წევრები მხოლოდ იმავე დომენიდან, ნებართვები — ტყის ნებისმიერ დომენში.");
+D(2,"Universal Group","სკოუპი: წევრები ტყის ნებისმიერი დომენიდან, ნებართვები ტყის ნებისმიერ რესურსზე; წევრობა ინახება Global Catalog-ში.");
+D(2,"AGDLP / AGUDLP","Microsoft-ის რეკომენდებული ჯგუფების ჩაშენების სტრატეგია: Accounts → Global → [Universal] → Domain Local → Permissions.");
+D(2,"Trust Relationship (ნდობა)","მექანიზმი, რომელიც ერთი დომენის მომხმარებლებს აძლევს მეორე დომენის რესურსებზე წვდომას; შეიძლება იყოს Transitive, One-way/Two-way, Internal, External, Forest, Realm.");
+D(2,"Functional Levels (DFL / FFL)","განსაზღვრავს Windows Server-ის მინიმალურ ვერსიას DC-ებზე დომენში (DFL) ან ტყეში (FFL) და რთავს შესაბამის ფუნქციონალს.");
+D(2,"AD-Integrated DNS","DNS ზონები, რომლებიც ინახება AD ბაზაში და რეპლიცირდება DC-ებს შორის; მხარს უჭერს Secure Dynamic Updates-ს.");
+D(2,"Azure AD","Microsoft-ის ღრუბლოვანი იდენტობის სერვისი, რომელსაც შეუძლია ლოკალური AD-ის სინქრონიზაცია.");
+D(2,"Kerberos","პროტოკოლი მომხმარებლებისა და სერვერების უსაფრთხო ავტენტიფიკაციისთვის დომენში; გასცემს ბილეთებს (Tickets).");
+D(2,"SID (AD ობიექტის)","უნიკალური იდენტიფიკატორი, რომელიც ენიჭება ყოველ ობიექტს და გამოიყენება ACL-ებში.");
+D(2,"hosts ფაილი","C:\\Windows\\system32\\drivers\\etc-ში მდებარე ფაილი IP ↔ FQDN/Hostname ხელით გაწერილი შესაბამისობებით (DNS რეზოლუცია).");
+D(2,"lmhosts ფაილი","LAN Manager hosts — IP ↔ NetBIOS სახელის შესაბამისობები (NetBIOS რეზოლუცია).");
+D(2,"Primary Zone","DNS ზონა ზონის ფაილის Read-Write პირველადი ასლით.");
+D(2,"Secondary Zone","DNS ზონა Read-Only ასლით, რომელსაც იღებს Primary-დან Zone Transfer-ით.");
+D(2,"Stub Zone","არაავტორიტეტული DNS ზონა მხოლოდ SOA, NS და Glue A ჩანაწერებით.");
+D(2,"DNS Forwarder","DNS სერვერის პარამეტრი, რომელიც პასუხის არ მქონე მოთხოვნებს გადაამისამართებს სხვა (მაგ. ISP-ის) DNS სერვერზე.");
+D(2,"Users კონტეინერი","AD-ის ნაგულისხმევი ჩაშენებული კონტეინერი (არა OU), შეიცავს Administrator-ს, Guest-ს და ჯგუფებს (Domain Admins, Domain Users...); მასზე GPO ვერ მიებმება.");
+D(2,"Intrasite Replication","რეპლიკაცია საიტის შიგნით (LAN) — დაუყოვნებლივ და შეუკუმშავად.");
+D(2,"Intersite Replication","რეპლიკაცია საიტებს შორის WAN-ით — იმართება Site Link-ით (განრიგი/ინტერვალი) და Bridgehead სერვერებით.");
+D(2,"Generation 2 VM","Hyper-V-ის VM, რომელიც იყენებს UEFI-ს (Secure Boot), VMBus სინთეტიკურ აპარატურას; მხოლოდ 64-ბიტიანი OS.");
+D(2,"Production Checkpoint","Checkpoint, რომელიც იყენებს სტუმარი OS-ის VSS-ს (ან fsfreeze) აპლიკაციურად მყარი ასლისთვის, მეხსიერების მდგომარეობის გარეშე.");
+D(2,"Standard Checkpoint","Checkpoint, რომელიც ინახავს დისკსაც და გაშვებული პროგრამების მეხსიერების მდგომარეობასაც.");
+D(2,"Private Virtual Switch","Hyper-V კომუტატორი — კომუნიკაცია მხოლოდ VM-ებს შორის.");
+D(2,"Internal Virtual Switch","Hyper-V კომუტატორი — კომუნიკაცია VM-ებსა და Host OS-ს შორის.");
+D(2,"External Virtual Switch","Hyper-V კომუტატორი — VM-ებს აკავშირებს ფიზიკურ ქსელთან ფიზიკური NIC-ით.");
+D(2,"SLAT (Second Level Address Translation)","CPU-ს ტექნოლოგია, რომლის მხარდაჭერა აუცილებელია Hyper-V როლის დასაყენებლად.");
+
+O(2,"რა არის Active Directory?","Microsoft-ის იერარქიული, განაწილებული დირექტორიის სერვისი და მონაცემთა ბაზა (ITU X.500), რომელიც ცენტრალიზებულად ინახავს ინფორმაციას ქსელური ობიექტების (მომხმარებლები, ჯგუფები, კომპიუტერები, პრინტერები, სერვისები) შესახებ, უზრუნველყოფს ცენტრალიზებულ ავტენტიფიკაციას (SSO) და Group Policy-ით პარამეტრების მართვას.");
+O(2,"რა არის AD-ის ტიპური ობიექტები?","Leaf Objects — User, Group, Computer accounts, გაზიარებული პრინტერები (სხვა ობიექტებს ვერ შეიცავენ). Container Objects — Domain, OU, Site, Default Containers (Users, Computers, Builtin, Domain Controllers). ტიპები და ატრიბუტები განსაზღვრულია Schema-ში.");
+O(2,"რა პროტოკოლებსა და სერვისებს იყენებს AD?","LDAP — ობიექტების ძიება/წაკითხვა/მოდიფიკაცია; Kerberos — უსაფრთხო ავტენტიფიკაცია (Tickets); DNS — DC-ების მოძებნა SRV ჩანაწერებით (_ldap, _kerberos); SMB/DFSR — SYSVOL-ისა და GPO-ების რეპლიკაცია; IP/SMTP — DC-ებს შორის რეპლიკაცია (SMTP მხოლოდ Schema და Configuration partition-ისთვის).");
+O(2,"რა განსხვავებაა სამუშაო ჯგუფსა და დომენს შორის?","Workgroup: P2P, თითოეული კომპიუტერი ინახავს ლოკალურ SAM ბაზას, მართვა დეცენტრალიზებულია, მცირე გარემოსთვის (<10 კომპიუტერი). Domain: Client/Server, ცენტრალიზებული AD ბაზა DC-ზე, Group Policy და SSO, ნებისმიერი ზომის ორგანიზაციისთვის.");
+O(2,"რა ფუნქციონალური დონეები არსებობს და რა სხვაობაა მათ შორის?","Domain Functional Level (DFL) — მინიმალური Windows Server ვერსია DC-ებზე ერთ დომენში, ფუნქციები ამ დომენში. Forest Functional Level (FFL) — მინიმალური DFL მთელ ტყეში, ფუნქციები მთელ ტყეში. მაგ. AD Recycle Bin-ისთვის FFL მინიმუმ Windows Server 2008 R2.");
+O(2,"რა არის replication topology?","საკომუნიკაციო გზებისა და კავშირების ნაკრები, რომლითაც AD ცვლილებები სინქრონიზდება DC-ებს შორის. Intrasite (საიტის შიგნით, LAN) — დაუყოვნებლივ, შეუკუმშავად; Intersite (საიტებს შორის, WAN) — Site Link-ით (განრიგი, ინტერვალი) და Bridgehead სერვერებით.");
+O(2,"რა სხვაობაა hosts და lmhosts ფაილებს შორის?","ორივე C:\\Windows\\system32\\drivers\\etc-შია. hosts — DNS რეზოლუციისთვის: IP ↔ FQDN/Hostname. lmhosts — NetBIOS რეზოლუციისთვის: IP ↔ NetBIOS სახელი.");
+O(2,"როგორია DNS რეზოლუცია (Forward Lookup)?","1) კლიენტი ამოწმებს DNS cache-ს და hosts ფაილს; 2) მიმართავს Preferred DNS სერვერს; 3) თუ სერვერს ქეშში აქვს — პასუხობს; 4) თუ არა — Root hints → TLD (.com) → Authoritative სერვერი (ან Forwarder); 5) პასუხი ქეშირდება TTL-ით და გადაეცემა კლიენტს.");
+O(2,"როგორია NetBIOS რეზოლუცია?","1) NetBIOS ქეში ან lmhosts; 2) თუ WINS კონფიგურირებულია — მიმართავს WINS-ს; 3) თუ არა — NetBIOS Broadcast ლოკალურ LAN-ში; 4) როუტერები ბროადქასტს არ ატარებენ, ამიტომ მუშაობს მხოლოდ იმავე სეგმენტში.");
+O(2,"რა DNS ზონები არსებობს და რა სხვაობაა მათ შორის?","Primary — Read-Write პირველადი ასლი; Secondary — Read-Only ასლი Zone Transfer-ით; AD-Integrated Primary — ინახება AD-ში, ყველა DC-ს Read-Write ასლი, Secure Dynamic Updates; Stub — არაავტორიტეტული, მხოლოდ SOA, NS, Glue A.");
+O(2,"რას აკეთებს WINS სერვერი?","დინამიურად გარდაქმნის NetBIOS სახელებს IPv4 მისამართებად, ამცირებს Broadcast ტრაფიკს და იძლევა რეზოლუციას სხვადასხვა LAN სეგმენტებს შორის (როუტერების გავლით).");
+O(2,"რას წარმოადგენს Users კონტეინერი?","AD-ის ნაგულისხმევი ჩაშენებული კონტეინერი, იქმნება დომენთან ერთად; შეიცავს Administrator-ს, გათიშულ Guest-ს, ჯგუფებს (Domain Admins, Domain Users, Domain Guests; root-ში Schema Admins, Enterprise Admins). ეს Container-ია და არა OU, ამიტომ მასზე GPO ვერ მიებმება.");
+O(2,"რა ჯგუფები გამოიყოფა ჯგუფის ტიპის მიხედვით და რა სხვაობაა?","Security Groups — რესურსებზე ნებართვების/უფლებების მისანიჭებლად. Distribution Groups — მხოლოდ ელფოსტის დაგზავნისთვის (Exchange), ნებართვები ვერ მიენიჭება.");
+O(2,"რა ჯგუფები გამოიყოფა ჯგუფის სკოუპის მიხედვით და რა სხვაობაა?","Domain Local — წევრები ტყის ნებისმიერი დომენიდან, ნებართვები მხოლოდ საკუთარ დომენში. Global — წევრები მხოლოდ საკუთარი დომენიდან, ნებართვები ტყის ნებისმიერ დომენში. Universal — წევრებიც და ნებართვებიც მთელ ტყეში; წევრობა Global Catalog-შია.");
+O(2,"რა არის AGDLP / AGUDLP?","Microsoft-ის რეკომენდებული Group Nesting სტრატეგია. AGDLP (ერთი დომენი): Accounts → Global → Domain Local → Permissions. AGUDLP (მრავალდომენიანი ტყე): Accounts → Global → Universal → Domain Local → Permissions.");
+O(2,"რა განსხვავებაა Type 1 და Type 2 ჰიპერვიზორებს შორის და რომელს მიეკუთვნება Hyper-V?","Type 1 (Bare-metal) — პირდაპირ აპარატურაზე, მცირე მართვის OS, მაღალი წარმადობა. Type 2 (Hosted) — Host OS-ზე. Hyper-V — Type 1.");
+O(2,"რა განსხვავებაა Generation 1 და Generation 2 VM-ებს შორის Hyper-V-ში?","Gen 1 — ძველი აპარატურის ემულაცია (IDE, legacy SCSI, სტანდარტული BIOS), 32/64-ბიტიანი OS. Gen 2 — UEFI (Secure Boot), VMBus სინთეტიკური აპარატურა, მხოლოდ 64-ბიტიანი OS.");
+O(2,"ჩამოთვალეთ Hyper-V-ის სამი ტიპის ვირტუალური კომუტატორი.","External — VM-ები ფიზიკურ ქსელთან ფიზიკური NIC-ით; Internal — VM-ები და Host OS; Private — მხოლოდ VM-ები ერთმანეთთან.");
+O(2,"რა განსხვავებაა Standard და Production checkpoints-ს შორის?","Standard — ინახავს დისკის ცვლილებებს და გაშვებული პროგრამების მეხსიერების მდგომარეობას. Production — იყენებს Guest OS-ის VSS-ს (ან Linux-ში fsfreeze) აპლიკაციურად მყარი ასლისთვის, მეხსიერების მდგომარეობის გარეშე.");
+O(2,"რა აპარატურული და პროცესორული მოთხოვნები უნდა დაკმაყოფილდეს Hyper-V როლის დასაყენებლად?","64-ბიტიანი CPU აპარატურული ვირტუალიზაციით (Intel VT ან AMD-V), SLAT (Second Level Address Translation) მხარდაჭერა და საკმარისი RAM.");
+// ვარიანტები
+O(2,"ჩამოთვალეთ FSMO როლები და მიუთითეთ რომელია ტყის და რომელი დომენის დონის.","ტყის დონე (1 თითო ტყეში): Schema Master, Domain Naming Master. დომენის დონე (1 თითო დომენში): PDC Emulator, RID Master, Infrastructure Master.",true);
+O(2,"რა განსხვავებაა დომენს, ხეს და ტყეს შორის?","დომენი — ძირითადი ლოგიკური ერთეული, ცენტრალიზებული ავტენტიფიკაცია DC-ით. ხე — დომენები საერთო DNS სახელთა სივრცით (Contiguous) და ორმხრივი ტრანზიტული ნდობით. ტყე — უდიდესი კონტეინერი და უსაფრთხოების საზღვარი, ერთი ან მეტი ხე; პირველი დომენი = Forest Root Domain.",true);
+O(2,"რა განსხვავებაა Member Server-ს, Domain Controller-სა და Standalone Server-ს შორის?","DC — AD DS როლით, ინახავს AD ბაზას, ახდენს ავტენტიფიკაციას. Member Server — დომენის წევრია, მაგრამ AD ბაზას არ ინახავს. Standalone — Workgroup-ის წევრია, დომენში არ შედის.",true);
+O(2,"რა არის Global Catalog და რისთვის გამოიყენება?","DC, რომელიც ინახავს ტყის ყველა ობიექტის ატრიბუტების ნაწილობრივ (Read-Only Partial Attribute Set) ასლს — ობიექტების სწრაფი ძიებისა და Universal ჯგუფების წევრობის შესამოწმებლად.",true);
+O(2,"რა განსხვავებაა SID-სა და GUID-ს შორის?","SID — უსაფრთხოების იდენტიფიკატორი, გამოიყენება ACL-ებში წვდომის კონტროლისთვის (RID Master-ის დიაპაზონებით იქმნება). GUID — 128-ბიტიანი გლობალურად უნიკალური იდენტიფიკატორი, ობიექტს განასხვავებს მთელ ტყეში.",true);
+O(2,"რა განსხვავებაა Contiguous და Disjointed Namespace-ს შორის?","Contiguous — დომენები იზიარებენ საერთო ძირითად DNS სახელს (domainX.com და east.domainX.com, ერთი ხე). Disjointed — სხვადასხვა ხის დომენები განსხვავებული სახელებით.",true);
+O(2,"რისთვის გამოიყენება RODC?","ფილიალებში (Branch Offices) დაბალი ფიზიკური უსაფრთხოების პირობებში; ინახავს AD ბაზის მხოლოდ წაკითხვად ასლს.",true);
+O(2,"ჩამოთვალეთ AD-ის ადმინისტრირების MMC ინსტრუმენტები.","dsac.exe — AD Administrative Center; dsa.msc — AD Users and Computers; domain.msc — AD Domains and Trusts; dssite.msc — AD Sites and Services; DNS-ისთვის — DNS Manager (dnsmgmt.msc).",true);
+O(2,"რა არის OU და რით განსხვავდება ჩაშენებული Users/Computers კონტეინერისგან?","OU — ადმინისტრატორის მიერ შექმნილი კონტეინერი ობიექტების დასაჯგუფებლად, რომელზეც შეიძლება GPO-ს მიბმა და დელეგირება. Users/Computers — ნაგულისხმევი კონტეინერებია, არა OU, მათზე GPO პირდაპირ ვერ მიებმება. ერთადერთი ნაგულისხმევი OU — Domain Controllers.",true);
+O(2,"რა არის Trust Relationship და რა სახეები არსებობს?","მექანიზმი, რომლითაც ერთი დომენის მომხმარებლები წვდებიან მეორე დომენის რესურსებს. სახეები: Transitive, One-way/Two-way, Internal, External, Forest, Realm.",true);
+O(2,"რა არის AD Schema?","წესების ნაკრები, რომელიც განსაზღვრავს AD ბაზის სტრუქტურას — ნებადართულ ობიექტთა ტიპებს (Classes) და მათ ატრიბუტებს (Attributes). ცვლილებებზე პასუხისმგებელია Schema Master.",true);
+O(2,"რა არის DNS Forwarder?","პარამეტრი, რომლითაც DNS სერვერი მოთხოვნებს, რომლებზეც თავად არ აქვს პასუხი, გადაამისამართებს სხვა (მაგ. ISP-ის) DNS სერვერზე.",true);
+O(2,"რატომ არის DNS აუცილებელი Active Directory-სთვის?","კლიენტები DC-ებსა და AD სერვისებს პოულობენ DNS-ის SRV ჩანაწერებით (_ldap, _kerberos); ამიტომ AD DS-ის დაყენებისას DNS-იც ყენდება და იქმნება AD-Integrated Primary ზონა.",true);
+
+T(2,"რა არის Active Directory?",["ვებ ბრაუზერი","ქსელში ობიექტების შესახებ ინფორმაციის შესანახად განკუთვნილი მონაცემთა ბაზა","ელ.ფოსტის სერვერი","ვიდეო კონფერენციის ინსტრუმენტი"],1,"AD — განაწილებული მონაცემთა ბაზა/დირექტორიის სერვისი.",0);
+T(2,"რა არის Active Directory-ის ძირითადი ფუნქცია?",["ფაილების გაზიარება","მომხმარებლის აუთენთიფიკაცია და ავტორიზაცია","ვებ ჰოსტინგი","პრინტერის მართვა"],1,"ცენტრალიზებული ავტენტიფიკაცია (SSO).",0);
+T(2,"ჩამოთვლილთაგან რომელი არ არის Active Directory Domain Services-ის (AD DS) როლი?",["დომენის კონტროლერი","DNS სერვერი","DHCP სერვერი","ფაილების სერვერი"],2,"მასალის მიხედვით სწორი: C (DHCP). შენიშვნა: DNS და File Server-იც ცალკე როლებია — AD DS-ის დაყენებით სერვერი ხდება DC.",0);
+T(2,"რა არის დომენის კონტროლერის დანიშნულება Active Directory-ში?",["პრინტერების მართვა","მომხმარებლის ანგარიშებისა და ნებართვების მართვა","ინტერნეტით წვდომის უზრუნველყოფა","პროგრამული განახლებების მართვა"],1,"DC ინახავს AD ბაზას და ახდენს ავტენტიფიკაციას.",0);
+T(2,"რომელი ინსტრუმენტი გამოიყენება Windows Server 2019-ში Active Directory-ის სამართავად?",["Active Directory Users and Computers","Microsoft Word","Notepad","Windows Media Player"],0,"ADUC = dsa.msc.",0);
+T(2,"რა არის ნაგულისხმევი რეპლიკაციის ინტერვალი Active Directory რეპლიკაციისთვის (ტესტის მიხედვით)?",["1 საათი","6 საათი","12 საათი","24 საათი"],0,"მასალის პასუხი: 1 საათი. შენიშვნა: DEFAULTIPSITELINK-ში საიტებს შორის 180 წუთია, LAN-ში — დაუყოვნებლივ.",0);
+T(2,"რა არის გლობალური კატალოგის მიზანი Active Directory-ში?",["ტყეში არსებული ყველა ობიექტის შესახებ ინფორმაციის შენახვა","ინფორმაციის შენახვა დომენის ყველა ობიექტის შესახებ","ორგანიზაციის ყველა მომხმარებლის შესახებ ინფორმაციის შენახვა","ჯგუფის პოლიტიკის შესახებ ინფორმაციის შენახვა"],0,"GC ინახავს ტყის ყველა ობიექტის ატრიბუტების ნაწილობრივ ასლს.",0);
+T(2,"ჩამოთვლილთაგან რომელი არ არის ნაგულისხმევი Active Directory-ის ორგანიზაციული ერთეული (OU)?",["მომხმარებლები","კომპიუტერები","პრინტერები","ჯგუფები"],[0,1],"მასალის პასუხი: A და B — Users და Computers ჩაშენებული კონტეინერებია და არა OU; ერთადერთი ნაგულისხმევი OU — Domain Controllers.",0);
+T(2,"რომელი ბრძანება გამოიყენება Windows სერვერის დომენის კონტროლერზე დასაწინაურებლად?",["dcpromo","promote","adconnect","dcsetup"],0,"dcpromo — ისტორიული ბრძანება; WS2019-ში Server Manager ან Install-ADDSDomainController.",0);
+T(2,"რა არის Active Directory სქემის მიზანი?",["Active Directory მონაცემთა ბაზის სტრუქტურის განსაზღვრა","მომხმარებლის პაროლების შენახვა","პრინტერის კონფიგურაციების მართვა","ელ.ფოსტის მისამართების შენახვა"],0,"Schema = Classes + Attributes.",0);
+T(2,"რა არის DNS?",["Dynamic Network Service","Distributed Name Server","Domain Name System","Data Network Security"],2,"Domain Name System.",0);
+T(2,"რომელი როლია პასუხისმგებელი DNS სერვისების მიწოდებაზე Windows Server 2019-ში?",["DHCP Server","Active Directory Domain Services","File Server","DNS Server"],3,"DNS Server როლი.",0);
+T(2,"რა არის DNS-ის დანიშნულება ქსელურ გარემოში?",["მონაცემთა გადაცემის დაშიფვრა","დომენური სახელების IP მისამართებად თარგმნა და პირიქით","მომხმარებლის ანგარიშებისა და ნებართვების მართვა","ვებსაიტების მასპინძლობა"],1,"FQDN ↔ IP.",0);
+T(2,"რომელი ინსტრუმენტის გამოყენება შეიძლება Windows Server 2019-ში DNS ზონებისა და ჩანაწერების სამართავად?",["Active Directory Users and Computers","DNS Manager","PowerShell","Windows Firewall"],1,"DNS Manager (dnsmgmt.msc).",0);
+T(2,"რა არის DNS forwarder-ის მიზანი?",["გარკვეულ ვებსაიტებზე წვდომის დაბლოკვა","DNS მოთხოვნების სხვა DNS სერვერზე გადამისამართება","IP მისამართების დინამიურად მინიჭება","პრინტერის კონფიგურაციების მართვა"],1,"Forwarder — მოთხოვნის გადამისამართება (მაგ. ISP-ზე).",0);
+T(2,"რომელი ვარიანტია დასაშვები top-level domain (TLD)-თვის?",[".abc",".net",".local",".workgroup"],1,".net — ოფიციალური TLD.",0);
+T(2,"Windows Server 2019-ში რომელია დეფაულტ DNS zone-ის ტიპი?",["Primary zone","Secondary zone","Stub zone","Forward lookup zone"],0,"AD-Integrated Primary zone.",0);
+T(2,"რისთვის გამოიყენება ძირითადად Server Manager Windows Server 2019-ში?",["მომხმარებლის ანგარიშებისა და ნებართვების მართვა","სერვერის როლებისა და მახასიათებლების მონიტორინგი და მართვა","GPO-ების შექმნა და რედაქტირება","მესამე მხარის აპლიკაციების ინსტალაცია"],1,"Server Manager — როლები/ფუნქციები.",0);
+T(2,"შემდეგი ამოცანებიდან რომელი შეიძლება შესრულდეს Server Manager-ის გამოყენებით?",["წერილების გაგზავნა","ვირტუალური მანქანების შექმნა","ქსელის პარამეტრების კონფიგურაცია","სერვერის როლებისა და ფუნქციების ინსტალაცია"],3,"Add Roles and Features Wizard.",0);
+T(2,"Server Manager-ის რომელი განყოფილება უზრუნველყოფს სერვერის მუშაობისა და მოვლენების მიმოხილვას?",["Roles and Features","Configuration","Dashboard","Tools"],2,"Dashboard.",0);
+T(2,"რომელი ტიპის ჰიპერვიზორს წარმოადგენს Microsoft Hyper-V?",["Type 2","Type 1","Type 3","Hosted Hypervisor"],1,"Hyper-V — Type 1 (Bare-metal).",0);
+T(2,"რა არის Hyper-V-ის .vhdx ვირტუალური დისკის მაქსიმალური ტევადობა?",["2 TB","16 TB","64 TB","128 TB"],2,".vhdx — 64 TB; .vhd — 2 TB.",0);
+T(2,"რომელი ვირტუალური switch იძლევა საშუალებას VM-ებმა იკომუნიკაციონ მხოლოდ ერთმანეთთან?",["External Virtual Switch","Internal Virtual Switch","Private Virtual Switch","Default Switch"],2,"Private — მხოლოდ VM-ებს შორის.",0);
+T(2,"რა ჰქვია Hyper-V-ის ფუნქციას, რომელიც VM-ში სხვა VM-ის გაშვების საშუალებას იძლევა?",["Live Migration","Shielded Virtual Machines","Nested Virtualization","Storage Migration"],2,"Nested Virtualization.",0);
+T(2,"Generation 2 ვირტუალური მანქანები Hyper-V-ში იყენებენ შემდეგ ფირმვერს:",["Standard BIOS","Legacy IDE BIOS","UEFI BIOS Secure Boot-ის მხარდაჭერით","CMOS Classic BIOS"],2,"Gen 2 — UEFI + Secure Boot.",0);
+// ვარიანტები
+T(2,"ჩამოთვლილთაგან რომელი არის ტყის დონის (Forest-wide) FSMO როლი?",["PDC Emulator","RID Master","Schema Master","Infrastructure Master"],2,"ტყის დონე: Schema Master და Domain Naming Master.");
+T(2,"ჩამოთვლილთაგან რომელი არ არის დომენის დონის FSMO როლი?",["PDC Emulator","RID Master","Infrastructure Master","Domain Naming Master"],3,"Domain Naming Master ტყის დონისაა.");
+T(2,"რამდენი FSMO როლი არსებობს Active Directory-ში?",["3","4","5","7"],2,"5 როლი: 2 ტყის + 3 დომენის დონის.");
+T(2,"რომელი FSMO როლი უზრუნველყოფს დროის სინქრონიზაციას და პაროლის ცვლილებების კოორდინაციას?",["Schema Master","PDC Emulator","RID Master","Domain Naming Master"],1,"PDC Emulator.");
+T(2,"რომელი FSMO როლი გასცემს RID დიაპაზონებს უნიკალური SID-ების შესაქმნელად?",["RID Master","Infrastructure Master","PDC Emulator","Schema Master"],0,"RID Master.");
+T(2,"რომელი FSMO როლი მართავს ტყეში ახალი დომენების დამატებასა და წაშლას?",["Schema Master","Domain Naming Master","Infrastructure Master","PDC Emulator"],1,"Domain Naming Master.");
+T(2,"რომელი FSMO როლი კოორდინაციას უწევს ჯგუფების წევრობას, GUID-ებსა და DN-ებს დომენებს შორის?",["Infrastructure Master","RID Master","Schema Master","PDC Emulator"],0,"Infrastructure Master.");
+T(2,"AD-ის ყველაზე დიდი ლოგიკური კონტეინერი და უსაფრთხოების საზღვარია:",["OU","დომენი","ხე","ტყე (Forest)"],3,"Forest.");
+T(2,"ტყეში პირველად დაინსტალირებულ დომენს ეწოდება:",["Child Domain","Forest Root Domain","Tree Domain","Parent OU"],1,"Forest Root Domain.");
+T(2,"დომენები, რომლებიც იზიარებენ საერთო DNS სახელთა სივრცეს, ქმნიან:",["ტყეს","ხეს (Tree)","საიტს","OU-ს"],1,"Tree — Contiguous namespace.");
+T(2,"east.domainX.com არის domainX.com-ის მიმართ:",["Forest Root","Child Domain","Site","OU"],1,"Child Domain იზიარებს მშობლის სახელთა სივრცეს.");
+T(2,"domainX.com და east.domainX.com-ს აქვთ:",["Disjointed Namespace","Contiguous Namespace","Flat Namespace","NetBIOS Namespace"],1,"საერთო ძირითადი სახელი = Contiguous.");
+T(2,"სხვადასხვა ხის დომენებს აქვთ:",["Contiguous Namespace","Disjointed Namespace","ერთი და იგივე DNS სახელი","Child Namespace"],1,"Disjointed.");
+T(2,"IP სუბნეტების გაერთიანება, რომელიც ორგანიზაციის ფიზიკურ ლოკაციას წარმოადგენს:",["OU","Site","Domain","Tree"],1,"Site — ფიზიკური ტოპოლოგია.");
+T(2,"ჩამოთვლილთაგან რომელი წარმოადგენს AD-ის ფიზიკურ (და არა ლოგიკურ) კომპონენტს?",["Forest","OU","Site","Tree"],2,"ფიზიკური: DC, RODC, Site.");
+T(2,"ფილიალში დაბალი ფიზიკური უსაფრთხოების პირობებში რეკომენდებულია:",["RODC","Schema Master","Global Catalog-ის გათიშვა","Workgroup"],0,"RODC — Read-Only ასლი.");
+T(2,"Windows Server, რომელიც დომენის წევრია, მაგრამ არ არის DC, არის:",["Standalone Server","Member Server","RODC","Bridgehead Server"],1,"Member Server.");
+T(2,"რომელი პროტოკოლი გამოიყენება AD-ში ობიექტების მოსაძებნად, წასაკითხად და მოდიფიკაციისთვის?",["SMTP","LDAP","DHCP","FTP"],1,"LDAP.");
+T(2,"რომელი პროტოკოლი უზრუნველყოფს დომენში უსაფრთხო ავტენტიფიკაციას ბილეთებით (Tickets)?",["LDAP","Kerberos","SMB","WINS"],1,"Kerberos.");
+T(2,"ჩამოთვლილთაგან რომელს არ იყენებს AD?",["LDAP","Kerberos","DNS","POP3"],3,"AD იყენებს LDAP, Kerberos, DNS, SMB/DFSR, IP/SMTP.");
+T(2,"რომელი DNS ჩანაწერების საშუალებით პოულობენ კლიენტები DC-ებს?",["MX","SRV","CNAME","PTR"],1,"SRV (_ldap, _kerberos).");
+T(2,"SYSVOL საქაღალდისა და GPO შაბლონების რეპლიკაციისთვის გამოიყენება:",["SMB / DFS Replication (DFSR)","POP3","DHCP","WINS"],0,"DFSR.");
+T(2,"AD რეპლიკაციაში SMTP გამოიყენება მხოლოდ:",["პაროლების რეპლიკაციისთვის","Schema და Configuration partition-ებისთვის","SYSVOL-ისთვის","DNS ზონებისთვის"],1,"SMTP — მხოლოდ Schema და Configuration.");
+T(2,"ჩამოთვლილთაგან რომელია Leaf ობიექტი?",["Domain","OU","Site","User account"],3,"Leaf: User, Group, Computer, Printer.");
+T(2,"ჩამოთვლილთაგან რომელი არ არის Leaf ობიექტი?",["User","Computer","Printer","Organizational Unit"],3,"OU კონტეინერული ობიექტია.");
+T(2,"რომელი არ არის ნაგულისხმევი (Default) კონტეინერი AD-ში?",["Users","Computers","Builtin","Tbilisi"],3,"Default: Users, Computers, Builtin, Domain Controllers.");
+T(2,"რატომ ვერ მივაბამთ GPO-ს Users კონტეინერს პირდაპირ?",["რადგან ის ცარიელია","რადგან ის Container-ია და არა OU","რადგან მხოლოდ Guest-ს შეიცავს","რადგან ის Site-ია"],1,"GPO მიებმება Site-ს, Domain-ს ან OU-ს.");
+T(2,"ერთადერთი ნაგულისხმევი OU დომენის შექმნისას არის:",["Users","Computers","Domain Controllers","Builtin"],2,"Domain Controllers.");
+T(2,"რამდენბიტიანია GUID?",["32","64","128","256"],2,"GUID — 128-ბიტიანი.");
+T(2,"CN=J.Eckert,OU=IT,DC=domain1,DC=com არის მაგალითი:",["GUID-ის","SID-ის","DN (Distinguished Name)-ის","UPN-ის"],2,"LDAP ფორმატის DN.");
+T(2,"რომელი ჯგუფის ტიპი გამოიყენება მხოლოდ ელფოსტის დაგზავნისთვის?",["Security","Distribution","Global","Universal"],1,"Distribution — ნებართვები ვერ ენიჭება.");
+T(2,"რომელ ჯგუფს შეიძლება მიენიჭოს რესურსზე ნებართვები?",["Distribution Group","Security Group","Mailing List","Contact"],1,"Security Group.");
+T(2,"ჯგუფის რომელი სკოუპის წევრები შეიძლება იყვნენ მხოლოდ იმავე დომენიდან, მაგრამ ნებართვები ტყის ნებისმიერ დომენში მიენიჭოს?",["Domain Local","Global","Universal","Builtin Local"],1,"Global.");
+T(2,"ჯგუფის რომელი სკოუპის წევრობის სია ინახება Global Catalog-ში?",["Domain Local","Global","Universal","Local"],2,"Universal.");
+T(2,"Domain Local ჯგუფს ნებართვები შეიძლება მიენიჭოს:",["ტყის ნებისმიერ დომენში","მხოლოდ იმავე დომენის რესურსებზე","მხოლოდ Child დომენში","არცერთ რესურსზე"],1,"Domain Local — საკუთარი დომენის რესურსები; წევრები კი ტყის ნებისმიერი დომენიდან.");
+T(2,"AGDLP-ში რას ნიშნავს ასო „P“?",["Policy","Permissions","Primary","Printer"],1,"Accounts → Global → Domain Local → Permissions.");
+T(2,"რომელია სწორი თანმიმდევრობა AGUDLP სტრატეგიაში?",["Accounts → Universal → Global → Domain Local → Permissions","Accounts → Global → Universal → Domain Local → Permissions","Accounts → Domain Local → Global → Permissions","Global → Accounts → Universal → Permissions"],1,"A → G → U → DL → P.");
+T(2,"AGUDLP გამოიყენება:",["ერთდომენიან გარემოში","მრავალდომენიანი ტყის გარემოში","მხოლოდ Workgroup-ში","მხოლოდ DNS-ისთვის"],1,"AGDLP — ერთი დომენი, AGUDLP — მრავალდომენიანი ტყე.");
+T(2,"AD Recycle Bin-ის ჩასართავად FFL მინიმუმ უნდა იყოს:",["Windows Server 2003","Windows Server 2008 R2","Windows Server 2012","Windows Server 2019"],1,"FFL ≥ Windows Server 2008 R2.");
+T(2,"რა განსხვავებაა DFL-სა და FFL-ს შორის?",["DFL მოქმედებს მთელ ტყეში, FFL — ერთ დომენში","DFL მოქმედებს ერთ დომენში, FFL — მთელ ტყეში","ორივე ერთნაირია","FFL მხოლოდ DNS-ს ეხება"],1,"DFL — დომენი, FFL — ტყე.");
+T(2,"საიტის შიგნით (Intrasite) რეპლიკაცია ხდება:",["განრიგით, შეკუმშულად","დაუყოვნებლივ და შეუკუმშავად","მხოლოდ ღამით","SMTP-ით"],1,"LAN-ში — დაუყოვნებლივ, შეუკუმშავად.");
+T(2,"საიტებს შორის (Intersite) რეპლიკაცია იმართება:",["Site Link ობიექტებით და Bridgehead სერვერებით","WINS სერვერით","DHCP Relay-ით","hosts ფაილით"],0,"Site Link (განრიგი/ინტერვალი) + Bridgehead.");
+T(2,"DEFAULTIPSITELINK-ში საიტებს შორის რეპლიკაციის ნაგულისხმევი ინტერვალია:",["15 წუთი","60 წუთი","180 წუთი","24 საათი"],2,"180 წუთი (3 საათი).");
+T(2,"სად მდებარეობს hosts და lmhosts ფაილები?",["C:\\Windows\\System32\\spool","C:\\Windows\\system32\\drivers\\etc","C:\\inetpub\\wwwroot","C:\\Windows\\SYSVOL"],1,"drivers\\etc.");
+T(2,"lmhosts ფაილი გამოიყენება:",["DNS რეზოლუციისთვის","NetBIOS რეზოლუციისთვის","DHCP-ისთვის","Kerberos-ისთვის"],1,"lmhosts — IP ↔ NetBIOS.");
+T(2,"DNS რეზოლუციისას კლიენტი პირველ რიგში ამოწმებს:",["Root hints სერვერებს","ლოკალურ DNS cache-ს და hosts ფაილს","TLD სერვერს","WINS სერვერს"],1,"ჯერ cache + hosts, შემდეგ Preferred DNS.");
+T(2,"NetBIOS Broadcast რეზოლუცია მუშაობს მხოლოდ იმავე LAN სეგმენტში, რადგან:",["WINS ბლოკავს","როუტერები ბროადქასტს არ ატარებენ","DNS კრძალავს","Firewall ყოველთვის ბლოკავს"],1,"როუტერები არ ატარებენ broadcast-ს.");
+T(2,"რომელი სერვისი გარდაქმნის NetBIOS სახელებს IP მისამართებად და ამცირებს Broadcast ტრაფიკს?",["DNS","DHCP","WINS","LDAP"],2,"WINS.");
+T(2,"რომელი DNS ზონა შეიცავს ზონის ფაილის Read-Only ასლს, მიღებულს Zone Transfer-ით?",["Primary","Secondary","Stub","AD-Integrated"],1,"Secondary.");
+T(2,"რომელი DNS ზონა შეიცავს მხოლოდ SOA, NS და Glue A ჩანაწერებს?",["Primary","Secondary","Stub","Reverse"],2,"Stub — არაავტორიტეტული.");
+T(2,"რომელი DNS ზონა მხარს უჭერს Secure Dynamic Updates-ს და რეპლიცირდება AD-ით?",["Secondary","Stub","AD-Integrated Primary","GlobalNames"],2,"AD-Integrated Primary.");
+T(2,"ჩამოთვლილთაგან რომელი არ არის DNS ზონის ტიპი?",["Primary","Secondary","Stub","Universal"],3,"Universal ჯგუფის სკოუპია.");
+T(2,"ჩამოთვლილთაგან რომელი არ არის Hyper-V ვირტუალური კომუტატორის ტიპი?",["External","Internal","Private","Public"],3,"სამი ტიპი: External, Internal, Private.");
+T(2,"რომელი ვირტუალური კომუტატორი აკავშირებს VM-ებს ფიზიკურ ქსელთან ფიზიკური NIC-ით?",["Internal","Private","External","Default"],2,"External.");
+T(2,"რომელი ვირტუალური კომუტატორი უზრუნველყოფს კომუნიკაციას VM-ებსა და Host OS-ს შორის (ფიზიკური ქსელის გარეშე)?",["External","Internal","Private","Bridge"],1,"Internal.");
+T(2,"რომელი Checkpoint იყენებს Guest OS-ის VSS სერვისს და არ ინახავს მეხსიერების მდგომარეობას?",["Standard","Production","Snapshot Classic","Differencing"],1,"Production checkpoint.");
+T(2,"Standard checkpoint ინახავს:",["მხოლოდ დისკს","დისკსაც და გაშვებული პროგრამების მეხსიერების მდგომარეობასაც","მხოლოდ რეესტრს","მხოლოდ ქსელურ პარამეტრებს"],1,"დისკი + მეხსიერება.");
+T(2,"რომელი დებულებაა სწორი Generation 1 VM-ზე?",["იყენებს UEFI-ს Secure Boot-ით","ემულირებს ძველ აპარატურას (IDE, BIOS) და უჭერს 32/64-ბიტს","მუშაობს მხოლოდ 64-ბიტზე","არ უჭერს მხარს IDE-ს"],1,"Gen 1 — legacy აპარატურა.");
+T(2,"Generation 2 VM მუშაობს:",["მხოლოდ 32-ბიტიან OS-ზე","მხოლოდ 64-ბიტიან OS-ზე","ნებისმიერ OS-ზე","მხოლოდ Linux-ზე"],1,"Gen 2 — მხოლოდ 64-ბიტი.");
+T(2,"VMBus აკავშირებს:",["VSP-სა და VSC-ს","DC-სა და GC-ს","DNS-სა და WINS-ს","MTA-სა და MUA-ს"],0,"Virtualization Service Provider ↔ Consumer.");
+T(2,"ჩამოთვლილთაგან რომელი არ არის Hyper-V-ს დაყენების მოთხოვნა?",["64-ბიტიანი CPU","Intel VT ან AMD-V","SLAT მხარდაჭერა","GPU ვიდეობარათი"],3,"საჭიროა 64-ბიტი, VT/AMD-V, SLAT, საკმარისი RAM.");
+T(2,"ძველი .vhd ფორმატის მაქსიმალური ტევადობაა:",["2 TB","16 TB","64 TB","128 TB"],0,".vhd — 2 TB, .vhdx — 64 TB.");
+T(2,"Workgroup-ში თითოეული კომპიუტერი ანგარიშებს ინახავს:",["AD ბაზაში DC-ზე","ლოკალურ SAM ბაზაში","Global Catalog-ში","DNS ზონაში"],1,"Workgroup — ლოკალური SAM.");
+T(2,"Workgroup რეკომენდებულია:",["ნებისმიერი ზომის ორგანიზაციისთვის","მცირე გარემოსთვის (10 კომპიუტერზე ნაკლები)","მხოლოდ მრავალდომენიანი ტყისთვის","მონაცემთა ცენტრებისთვის"],1,"<10 კომპიუტერი.");
+T(2,"რომელი MMC ინსტრუმენტია Active Directory Sites and Services?",["dsa.msc","domain.msc","dssite.msc","dsac.exe"],2,"dssite.msc.");
+T(2,"რომელი ინსტრუმენტია Active Directory Domains and Trusts?",["dsa.msc","domain.msc","dssite.msc","lusrmgr.msc"],1,"domain.msc.");
+T(2,"dsac.exe არის:",["Active Directory Administrative Center","DNS Manager","Group Policy Management","Local Users and Groups"],0,"AD Administrative Center.");
+T(2,"WS2019-ში DC-ზე დასაწინაურებელი PowerShell cmdlet-ია:",["Install-ADDSDomainController","New-ADDomain -Promote","Add-DCRole","Set-DomainController"],0,"Install-ADDSDomainController.");
+T(2,"Microsoft-ის ღრუბლოვანი იდენტობის სერვისი, რომელსაც შეუძლია ლოკალური AD-ის სინქრონიზაცია:",["Azure AD","WINS","RODC","IPAM"],0,"Azure Active Directory.");
+T(2,"AD შეესაბამება სტანდარტს:",["ITU X.500","IEEE 802.11","RFC 2131","ISO 9660"],0,"X.500.");
+T(2,"ჩამოთვლილთაგან რომელი არ არის Trust-ის სახე?",["Transitive","External","Forest","Distribution"],3,"Distribution ჯგუფის ტიპია.");
+T(2,"ჩამოთვლილთაგან რომელია DNS ჩანაწერის ტიპი, რომელიც DNS Manager-ში იმართება?",["MX","GPO","SID","OU"],0,"ჩანაწერები: A, CNAME, MX, SRV.");
+
+// ===================== ქვიზი 3 =====================
+D(3,"აპლიკაციათა სერვერი (Application Server)","სერვერული სისტემა, რომელიც უზრუნველყოფს ორგანიზაციული ბიზნეს-ლოგიკისა და კლიენტ/სერვერული აპლიკაციების გაშვებას, მართვასა და მომხმარებლებისთვის სერვისების მიწოდებას.");
+D(3,"Mail Server (მეილ სერვერი)","სერვერი, რომელიც პასუხისმგებელია ელფოსტის მიღებაზე, გაგზავნასა და საფოსტო ყუთებში შენახვაზე (მაგ. Exchange Server) MUA, MTA და MDA კომპონენტებით.");
+D(3,"SMTP (Simple Mail Transfer Protocol)","ქსელური პროტოკოლი (პორტი 25), რომელიც უზრუნველყოფს ელფოსტის ტრანსპორტირებას სერვერებს შორის (MTA) და კლიენტიდან სერვერზე.");
+D(3,"DHCP სერვერი","Windows Server-ის როლი, რომელიც მოწყობილობებს დინამიურად ანიჭებს IP მისამართს, Subnet Mask-ს, Default Gateway-ს, DNS სერვერის მისამართს და სხვა პარამეტრებს.");
+D(3,"ვებ სერვერი (Web Server)","სერვერი, რომელიც ჰოსტინგს უწევს ვებ-საიტებსა და აპლიკაციებს, ამუშავებს ბრაუზერების HTTP/HTTPS მოთხოვნებს და უბრუნებს ვებ-გვერდებს.");
+D(3,"ფაილ სერვერი (File Server)","სერვერული როლი (File and Storage Services) ფაილების ცენტრალიზებული შენახვისთვის, ქსელური გაზიარებისთვის (SMB/NFS) და წვდომის უფლებების მართვისთვის.");
+D(3,"IPAM (IP Address Management)","Windows Server-ის ტექნოლოგია მრავალი DNS და DHCP სერვერის, IP სივრცისა და სუბნეტების ცენტრალიზებული მონიტორინგისა და ადმინისტრირებისთვის.");
+D(3,"მონაცემთა ბაზის სერვერი (Database Server)","სერვერი, რომელიც უზრუნველყოფს მონაცემთა ბაზების (მაგ. SQL Server) შენახვას, დამუშავებასა და მართვას; კლიენტები უკავშირდებიან დრაივერებითა და პროტოკოლებით (ODBC, JDBC, OLE DB).");
+D(3,"ODBC (Open Database Connectivity)","სტანდარტული API, რომელიც აპლიკაციებს აძლევს სხვადასხვა ტიპის მონაცემთა ბაზებთან დაკავშირებისა და მონაცემთა გაცვლის საშუალებას.");
+D(3,"JDBC (Java Database Connectivity)","Java-ს სტანდარტული API (Sun Microsystems), რომლითაც Java აპლიკაციები უკავშირდებიან ბაზებს და ასრულებენ SQL მოთხოვნებს.");
+D(3,"OLE DB (Object Linking and Embedding, Database)","Microsoft-ის API/ტექნოლოგია აპლიკაციების წვდომისთვის სხვადასხვა ფორმატის (რელაციურ და არარელაციურ) მონაცემთა წყაროებთან.");
+D(3,"Collaboration Server (კოლაბორაციული სერვერი)","სერვერული აპლიკაცია (მაგ. SharePoint Server), რომელიც სხვადასხვა ლოკაციის გუნდის წევრებს აერთიანებს საერთო პროექტებზე, დოკუმენტებსა და ამოცანებზე სამუშაოდ.");
+D(3,"IIS (Internet Information Services)","Microsoft-ის ჩაშენებული ვებ-სერვერული პროგრამა Windows Server-ში ვებ-საიტების, აპლიკაციებისა და სერვისების (HTTP, HTTPS, FTP, SMTP, ASP.NET) ჰოსტინგისა და მართვისთვის.");
+D(3,"WWW (World Wide Web)","გლობალური საინფორმაციო სისტემა ინტერნეტში, სადაც რესურსები იდენტიფიცირდება URL-ებით, დაკავშირებულია ჰიპერლინკებით და ხელმისაწვდომია HTTP/HTTPS-ით.");
+D(3,"HTML (Hypertext Markup Language)","სტანდარტული მარკირების ენა ვებ-გვერდების სტრუქტურისა და შინაარსის შესაქმნელად, რომელსაც ბრაუზერი ვიზუალურად გამოსახავს.");
+D(3,"FTP (File Transfer Protocol)","სტანდარტული ქსელური პროტოკოლი (პორტები 20/21) ფაილების გადასაცემად კლიენტსა და სერვერს შორის.");
+D(3,"CA (Certification Authority)","სერტიფიკაციის ორგანო/სერვერი (AD CS), რომელიც ადასტურებს იდენტობას და გასცემს ციფრულ სერტიფიკატებს.");
+D(3,"PKI (Public Key Infrastructure)","აპარატურის, პროგრამებისა და პოლიტიკების ერთობლიობა ციფრული სერტიფიკატების შესაქმნელად, გასაცემად, სამართავად და გასაუქმებლად.");
+D(3,"VPN (Virtual Private Network)","ტექნოლოგია, რომელიც საჯარო ინტერნეტით ქმნის დაშიფრულ ლოგიკურ გვირაბს დისტანციურ კლიენტსა და ორგანიზაციის შიდა ქსელს შორის.");
+D(3,"Remote Access","Windows Server-ის როლი, რომლითაც ორგანიზაციის გარეთ მყოფი მომხმარებლები უსაფრთხოდ უკავშირდებიან შიდა რესურსებს (VPN, DirectAccess, RRAS, Web Application Proxy).");
+D(3,"RSAT (Remote Server Administration Tools)","ინსტრუმენტების ნაკრები Windows 10/11-ზე ან სერვერზე, რომლითაც ადმინისტრატორი დისტანციურად მართავს სერვერის როლებს, ფუნქციებსა და AD-ს.");
+D(3,"RDS (Remote Desktop Services)","სერვერული როლი (ყოფილი Terminal Services), რომელიც RDP-ით აძლევს წვდომას დისტანციურ სამუშაო მაგიდაზე ან RemoteApp აპლიკაციებზე.");
+D(3,"RDG (Remote Desktop Gateway)","RDS-ის კომპონენტი, რომელიც RDP ტრაფიკს ფუთავს HTTPS-ში (პორტი 443), რათა ინტერნეტიდან ფაირვოლის გავლით უსაფრთხოდ დაუკავშირდნენ შიდა RDS სერვერებს.");
+D(3,"MTA (Mail Transport Agent)","მეილ სერვერის კომპონენტი — ფოსტის ტრანსპორტირება მეილ სერვერებს შორის (SMTP).");
+D(3,"MDA (Mail Delivery Agent)","მეილ სერვერის კომპონენტი — წერილის სერვერიდან მომხმარებლის Inbox-ში განთავსება.");
+D(3,"MUA (Mail User Agent)","მომხმარებლის საფოსტო კლიენტი (მაგ. Outlook) წერილების დასაწერად და წასაკითხად.");
+D(3,"POP3 (Post Office Protocol 3)","პროტოკოლი (პორტი 110) წერილების სერვერიდან ლოკალურ კომპიუტერზე ჩამოსატვირთად.");
+D(3,"IMAP4 (Internet Message Access Protocol)","პროტოკოლი (პორტი 143) წერილების წასაკითხად და სერვერთან სინქრონიზაციისთვის, სერვერიდან წაშლის გარეშე.");
+D(3,"მონიტორინგ სერვერი","სერვერი, რომელიც თვალყურს ადევნებს სერვერების ჯანმრთელობასა და წარმადობას (CPU, RAM, დისკები, ქსელი, სერვისები); მაგ. System Center 2019 Operations Manager.");
+D(3,"ASP (Active Server Pages)","Microsoft-ის სერვერული სკრიპტინგის ტექნოლოგია IIS-ზე დინამიური ვებ-გვერდებისა და აპლიკაციების შესაქმნელად.");
+D(3,"SSL (Secure Sockets Layer)","ოქმი, რომელიც შიფრავს არხს ვებ-სერვერსა და ბრაუზერს შორის; მუშაობს HTTPS-ით (443) და იყენებს ციფრულ სერტიფიკატებს.");
+D(3,"HTTPS","დაცული HTTP, მუშაობს TCP პორტ 443-ზე და იყენებს SSL/TLS სერტიფიკატებს დაშიფრული კავშირისთვის.");
+D(3,"DHCP Scope","IP მისამართების დიაპაზონი/არეალი, რომელსაც DHCP სერვერი გასცემს კლიენტებზე.");
+D(3,"DHCP Reservation","DHCP-ის ფუნქცია, რომელიც კონკრეტული MAC მისამართის მქონე მოწყობილობას ყოველთვის ერთსა და იმავე IP-ს ანიჭებს.");
+D(3,"DHCP Relay Agent","აგენტი, რომელიც DHCP ბროადქასტ მოთხოვნებს სხვა ქვექსელებიდან გადაამისამართებს ცენტრალურ DHCP სერვერზე.");
+D(3,"Lease Duration","DHCP-ის პარამეტრი — რა ვადით ეძლევა (იჯარით) კლიენტს IP მისამართი.");
+D(3,"Host Headers","IIS-ის ფუნქცია (Site Bindings), რომელიც ერთ IP მისამართზე რამდენიმე სხვადასხვა დომენური სახელის ვებსაიტის განთავსების საშუალებას იძლევა.");
+D(3,"Document Root","ვებ-სერვერის ძირითადი დირექტორია ვებსაიტის ფაილებით, ხელმისაწვდომი კლიენტებისთვის (IIS-ში C:\\inetpub\\wwwroot).");
+D(3,"Virtual Directory","IIS-ში URL ალიასის (მაგ. /xcontrol) დაკავშირება ფაილური სისტემის კონკრეტულ საქაღალდესთან.");
+D(3,"Application Pool","IIS-ის მექანიზმი განცალკევებული Worker Process-ებით — ერთი აპლიკაციის გათიშვა გავლენას არ ახდენს სხვებზე.");
+D(3,"Exchange Server 2019","Microsoft-ის აპლიკაცია ორგანიზაციის სრულფასოვანი მეილ სერვერის ინფრასტრუქტურისთვის.");
+D(3,"SharePoint Server 2019","Microsoft-ის პლატფორმა კოლაბორაციული სერვერის გასამართად.");
+D(3,"სისტემის ადმინისტრატორი","სპეციალისტი, რომელიც პასუხისმგებელია სერვერული ინფრასტრუქტურის, OS-ებისა და ქსელური სერვისების დანერგვაზე, კონფიგურაციაზე, უსაფრთხოებასა და შეუფერხებელ მუშაობაზე.");
+D(3,"MTA / MCSA (სერტიფიკაციები)","Microsoft-ის სერტიფიკაციები: MTA — საბაზო (მაგ. 98-365), MCSA/MCSD — პროფესიული; ბარდება Certiport-სა და Pearson VUE-ში.");
+
+O(3,"რას აკეთებს სისტემის ადმინისტრატორი?","პასუხისმგებელია ორგანიზაციის სერვერული ინფრასტრუქტურის, OS-ებისა და ქსელური სერვისების დანერგვაზე, კონფიგურაციაზე, უსაფრთხოებასა და შეუფერხებელ მუშაობაზე; მართავს ანგარიშებსა და წვდომებს, ფაილურ საცავებს, ვირტუალიზაციას, პროტოკოლებს, განახლებებსა და Backup-ს; ახორციელებს მონიტორინგსა და Troubleshooting-ს.");
+O(3,"რატომ ირჩევენ პროფესიად სისტემის ადმინისტრატორობას?","დინამიური და მოთხოვნადი პროფესიაა; დამსაქმებლებს სჭირდებათ კრიტიკულად მოაზროვნე, შემოქმედებითი, პრობლემების გადამჭრელი სპეციალისტები; იძლევა კარიერული ზრდის, ცოდნის პრაქტიკაში რეალიზებისა და საერთაშორისო სერტიფიცირების (MTA, MCSA) შესაძლებლობას.");
+O(3,"რა ამოცანები დგას სისტემის ადმინისტრატორის წინაშე?","სერვერების ინსტალაცია და პოსტ-ინსტალაცია (IP, სახელი, დომენი); ანგარიშებისა და წვდომების მართვა (AD, OU, Users, Groups, GPO, NTFS/Share); ქსელური სერვისები (DNS, DHCP, WINS, VPN, RDS); საცავები (Storage Pools, RAID, დედუპლიკაცია, კვოტები, Backup); უსაფრთხოება და მოვლა (WSUS, Defender, მონიტორინგი, Troubleshooting).");
+O(3,"რა მოწყობილობებს და ტექნოლოგიებს იყენებს სისტემის ადმინისტრატორი?","აპარატურა: სერვერები (Rack, Blade, Tower), KVM, UPS, HDD/SSD/NVMe/SAN/NAS, NIC, როუტერები. მართვა: Server Manager, WAC, MMC (ADUC, Disk Management, Event Viewer), PowerShell, RSAT. ვირტუალიზაცია: Hyper-V, Docker/Windows Containers, WSL. პროტოკოლები: TCP/IP, DNS, DHCP, LDAP, Kerberos, SMB, NFS, HTTP/HTTPS, SSL/TLS, IPAM, RDP, VPN.");
+O(3,"რა ვარიანტები არსებობს სისტემის ადმინისტრატორის კვალიფიკაციის დასადასტურებლად?","Microsoft-ის სერტიფიცირება: MTA (საბაზო, მაგ. 98-365 Windows Server Administration Fundamentals); MCSA და MCSD (პროფესიული); გამოცდები ბარდება Certiport-სა და Pearson VUE-ში.");
+O(3,"რა არის აპლიკაციათა სერვერი?","სერვერი, რომელიც უზრუნველყოფს ბიზნეს-ლოგიკისა და კლიენტ/სერვერული აპლიკაციების გაშვებასა და მართვას ქსელში; მის კატეგორიაში შედის მეილ, მონაცემთა ბაზის, კოლაბორაციული, მონიტორინგისა და საფრთხეების მართვის სერვერები.");
+O(3,"რა არის მეილ სერვერი?","აპლიკაციური სერვერი, რომელიც უზრუნველყოფს ელფოსტის მიღებას, გაგზავნასა და საფოსტო ყუთებში შენახვას (მაგ. Microsoft Exchange Server 2019).");
+O(3,"რა არის მეილ სერვერის მთავარი კომპონენტები?","MTA (Mail Transport Agent) — ტრანსპორტირება სერვერებს შორის; MDA (Mail Delivery Agent) — წერილის Inbox-ში განთავსება; MUA (Mail User Agent) — საფოსტო კლიენტი (Outlook) წერისა და კითხვისთვის.");
+O(3,"რა პროტოკოლებს იყენებს მეილ სერვერი?","SMTP (25) — გაგზავნა/ტრანსპორტი სერვერებს შორის; POP3 (110) — ჩამოტვირთვა ლოკალურ კომპიუტერზე; IMAP4 (143) — წაკითხვა და სინქრონიზაცია სერვერიდან წაშლის გარეშე.");
+O(3,"რა წვდომის პროტოკოლები გამოიყენება მონაცემთა ბაზების სერვერებზე?","ODBC — სტანდარტული ინტერფეისი აპლიკაციების ბაზასთან დასაკავშირებლად; JDBC — Sun Microsystems-ის, Java აპლიკაციებისთვის; OLE DB — Microsoft-ის, სხვადასხვა მონაცემთა წყაროებთან წვდომისთვის.");
+O(3,"რა არის მონიტორინგ სერვერი?","სერვერი, რომელიც თვალყურს ადევნებს სერვერების ჯანმრთელობასა და წარმადობას (CPU, RAM, დისკები, ქსელი, სერვისები, პროცესები); მაგ. System Center 2019 Operations Manager.");
+O(3,"რა არის Active Server Pages (ASP)?","Microsoft-ის სერვერული სკრიპტინგის ტექნოლოგია, რომელიც IIS-ზე გამოიყენება დინამიური ვებ-გვერდებისა და აპლიკაციების შესაქმნელად.");
+O(3,"რა არის SSL?","Secure Sockets Layer — ოქმი, რომელიც შიფრავს მონაცემთა არხს ვებ-სერვერსა და ბრაუზერს შორის; მუშაობს HTTPS-ით (პორტი 443) და იყენებს ციფრულ სერტიფიკატებს.");
+// ვარიანტები
+O(3,"რა არის DHCP სერვერის ფუნქცია და რა პარამეტრებს გასცემს?","დინამიურად (იჯარით) ანიჭებს მოწყობილობებს IP მისამართს, Subnet Mask-ს, Default Gateway-ს (Option 003), DNS სერვერებს (Option 006); კონფიგურაცია: Scope, Lease Duration, Reservation. ამცირებს ადმინისტრაციულ ხარჯებს და IP კონფლიქტებს.",true);
+O(3,"რა არის DHCP Relay Agent და რატომ არის საჭირო?","როუტერები არ ატარებენ ბროადქასტ (DHCPDISCOVER) პაკეტებს; Relay Agent ამ მოთხოვნებს სხვა ქვექსელებიდან გადაამისამართებს ცენტრალურ DHCP სერვერზე.",true);
+O(3,"რა არის DHCP Reservation?","კონკრეტული MAC მისამართის მქონე მოწყობილობისთვის (პრინტერი, სერვერი) ყოველთვის ერთი და იგივე ფიქსირებული IP-ის მინიჭება DHCP-ით.",true);
+O(3,"რომელ პორტებს იყენებს DHCP სერვერი და კლიენტი?","სერვერი — UDP 67, კლიენტი — UDP 68.",true);
+O(3,"რა არის IIS და რა სერვისებს უწევს ჰოსტინგს?","Internet Information Services — Microsoft-ის ვებ-სერვერი Windows Server-ში; ჰოსტინგი: HTTP, HTTPS, FTP, SMTP, ASP.NET. ყენდება Web Server (IIS) როლით, იმართება IIS Manager-ით (Server Manager → Tools) ან PowerShell-ით.",true);
+O(3,"რა განსხვავებაა Virtual Directory-სა და Document Root-ს შორის IIS-ში?","Document Root — ძირითადი საქაღალდე საიტის ფაილებით (C:\\inetpub\\wwwroot). Virtual Directory — URL ალიასი (მაგ. /xcontrol), რომელიც მიბმულია ფაილური სისტემის სხვა კონკრეტულ საქაღალდესთან.",true);
+O(3,"რა უპირატესობა აქვს Application Pools-ს IIS-ში?","განცალკევებული Worker Process-ები იზოლაციას უკეთებს აპლიკაციებს — ერთი აპლიკაციის შეფერხება/გათიშვა სხვა აუზის აპლიკაციებზე გავლენას არ ახდენს.",true);
+O(3,"როგორ შეიძლება ერთ IP მისამართზე რამდენიმე ვებსაიტის განთავსება IIS-ში?","Host Headers-ით (Site Bindings) — თითოეულ საიტს სხვადასხვა დომენური სახელი (FQDN) ენიჭება ერთსა და იმავე IP-ზე.",true);
+O(3,"ჩამოთვალეთ ძირითადი პროტოკოლები და მათი ნაგულისხმევი პორტები (ქვიზ 3-ის მასალიდან).","HTTP — 80; HTTPS — 443; FTP — 20/21; SMTP — 25; POP3 — 110; IMAP4 — 143; DHCP — UDP 67 (სერვერი) / 68 (კლიენტი); SSH — 22.",true);
+O(3,"რა განსხვავებაა RDS-სა და RDG-ს შორის?","RDS — როლი, რომელიც RDP-ით აძლევს დისტანციურ Desktop-ს ან RemoteApp-ს. RDG — RDS-ის კომპონენტი, რომელიც RDP-ს ფუთავს HTTPS-ში (443), რათა ინტერნეტიდან ფაირვოლის გავლით შიდა RDS-ს დაუკავშირდნენ.",true);
+O(3,"რა განსხვავებაა CA-სა და PKI-ს შორის?","CA — ორგანო/სერვერი (AD CS), რომელიც გასცემს სერტიფიკატებს. PKI — მთელი ინფრასტრუქტურა (აპარატურა, პროგრამები, პოლიტიკები) სერტიფიკატების შექმნის, გაცემის, მართვისა და გაუქმებისთვის.",true);
+O(3,"რა არის VPN და რომელი როლი უზრუნველყოფს მას Windows Server-ში?","დაშიფრული ლოგიკური გვირაბი საჯარო ინტერნეტით დისტანციურ კლიენტსა და შიდა ქსელს შორის; Remote Access როლი (VPN, DirectAccess, RRAS, Web Application Proxy).",true);
+O(3,"რა არის RSAT და სად ინსტალირდება?","Remote Server Administration Tools — ინსტალირდება Windows 10/11-ზე ან სერვერზე სერვერის როლების, ფუნქციებისა და AD-ის დისტანციური მართვისთვის.",true);
+O(3,"რა განსხვავებაა POP3-სა და IMAP4-ს შორის?","POP3 (110) — წერილებს ჩამოტვირთავს ლოკალურ კომპიუტერზე. IMAP4 (143) — კითხულობს და სინქრონიზებს სერვერთან, სერვერიდან წაშლის გარეშე.",true);
+
+T(3,"რას ნიშნავს DHCP?",["Domain Host Configuration Protocol","Dynamic Host Control Protocol","Dynamic Host Configuration Protocol","Domain Host Control Protocol"],2,"Dynamic Host Configuration Protocol.",0);
+T(3,"ჩამოთვლილთაგან რომელია DHCP სერვერის ძირითადი ფუნქცია?",["მოწყობილობებისთვის IP მისამართების დინამიურად მინიჭება","DNS ჩანაწერების მართვა","Firewall-ის კონფიგურაცია","AD მომხმარებლების მართვა"],0,"IP-ების იჯარით გაცემა.",0);
+T(3,"რომელი ინსტრუმენტი გამოიყენება DHCP სერვერების სამართავად Windows Server-ში?",["Control Panel","PowerShell","Server Manager","Task Manager"],2,"მასალის პასუხი: Server Manager (Tools → DHCP კონსოლი); PowerShell-იც შესაძლებელია.",0);
+T(3,"ჩამოთვლილთაგან რომელი არ არის DHCP სერვერის კონფიგურაციის ვარიანტი?",["IP Address Range","Subnet Mask","Default Gateway","File Share Path"],3,"File Share Path — ფაილ სერვერის პარამეტრია.",0);
+T(3,"რა არის ნაგულისხმევი პორტი, რომელსაც DHCP სერვერები იყენებენ?",["67","68","69","70"],0,"სერვერი UDP 67, კლიენტი UDP 68.",0);
+T(3,"DHCP-ის რომელი ტიპი ანიჭებს ფიქსირებულ IP-ს მოწყობილობას მისი MAC მისამართის საფუძველზე?",["Static DHCP","Dynamic DHCP","Manual DHCP","Reserved DHCP"],3,"DHCP Reservation.",0);
+T(3,"რა არის DHCP relay აგენტების დანიშნულება?",["არაავტორიზებული მოწყობილობების დაბლოკვა","DHCP შეტყობინებების წვდომის გაფართოება მრავალ ქვექსელში","DNS ჩანაწერების დინამიური მართვა","DHCP სერვერების სინქრონიზაცია ფეილოვერში"],1,"როუტერები ბროადქასტს არ ატარებენ.",0);
+T(3,"ჩამოთვლილთაგან რომელი არ არის DHCP სერვერის კონფიგურაციის პარამეტრი?",["Lease Duration","DHCP Scope","DNS Server","HTTP Server"],3,"HTTP Server DHCP-ს არ ეკუთვნის.",0);
+T(3,"რომელ უპირატესობას იძლევა DHCP IP-ების ხელით კონფიგურაციასთან შედარებით?",["უსაფრთხოების გაზრდა","შემცირებული ადმინისტრაციული ხარჯები","ქსელის მუშაობის გაუმჯობესება","მეტი კონტროლი ტრაფიკზე"],1,"ნაკლები შეცდომა და ხარჯი.",0);
+T(3,"Windows Server-ში რომელი როლი უნდა დაინსტალირდეს DHCP-ის კონფიგურაციისთვის?",["Network Policy and Access Services","Active Directory Domain Services","DHCP Server","DNS Server"],2,"DHCP Server როლი.",0);
+T(3,"რას ნიშნავს IIS?",["Internet Infrastructure Server","Internet Information Services","Integrated Internet Server","Internal Information System"],1,"Internet Information Services.",0);
+T(3,"ჩამოთვლილთაგან რომელი არ არის ვებ სერვერის ძირითადი ფუნქცია?",["ვებსაიტების ჰოსტინგი","მონაცემთა ბაზის სერვერების მართვა","HTTP მოთხოვნების დამუშავება","ვებ გვერდების მიწოდება კლიენტებისთვის"],1,"ბაზების მართვა — Database Server-ის ფუნქციაა.",0);
+T(3,"რომელი ინსტრუმენტი გამოიყენება IIS-ის სამართავად Windows Server-ში?",["Control Panel","PowerShell","Server Manager","Task Manager"],2,"მასალის პასუხი: Server Manager (მისგან IIS Manager).",0);
+T(3,"რომელი პროტოკოლი გამოიყენება ძირითადად ვებ სერვერებსა და კლიენტებს შორის?",["SMTP","FTP","HTTP","TCP"],2,"HTTP/HTTPS.",0);
+T(3,"რომელია IIS-ის გარდა Windows Server-ზე გავრცელებული ვებ სერვერის პროგრამა (ტესტის მიხედვით)?",["Apache","Nginx","Tomcat","Lighttpd"],0,"მასალის პასუხი: Apache (Nginx-იც ნახსენებია ალტერნატივად).",0);
+T(3,"რა არის ნაგულისხმევი პორტი HTTP ტრაფიკისთვის?",["80","443","8080","21"],0,"HTTP 80, HTTPS 443.",0);
+T(3,"IIS-ის რომელი მახასიათებელი იძლევა რამდენიმე ვებსაიტის ერთ IP-ზე განთავსების საშუალებას?",["Host Headers","Virtual Directories","SSL Encryption","Reverse Proxy"],0,"Host Headers / Site Bindings.",0);
+T(3,"რა არის ვებ სერვერის Document Root-ის მიზანი?",["ინახავს კონფიგურაციის ფაილებს","შეიცავს ჟურნალის ფაილებს","ინახავს ვებსაიტის ფაილებს, ხელმისაწვდომს კლიენტებისთვის","მართავს ავთენტიფიკაციას"],2,"C:\\inetpub\\wwwroot.",0);
+T(3,"ჩამოთვლილთაგან რომელი არ არის IIS-ის სწორი კომპონენტი?",["FTP Server","DNS Server","Web Server (IIS)","Application Server"],1,"DNS ცალკე როლია.",0);
+T(3,"რომელი როლი უნდა დაინსტალირდეს Windows სერვერზე IIS-ის კონფიგურაციისთვის?",["Web Server (IIS)","Network Policy and Access Services","AD DS","DHCP Server"],0,"Web Server (IIS).",0);
+T(3,"რომელი პროტოკოლი გადასცემს ფოსტას მეილ სერვერებს შორის (MTA) და რომელ პორტზე?",["POP3 (110)","SMTP (25)","IMAP4 (143)","HTTP (80)"],1,"SMTP 25.",0);
+T(3,"რომელი Microsoft აპლიკაცია გამოიყენება სრულფასოვანი მეილ სერვერის ინფრასტრუქტურისთვის?",["SQL Server 2019","SharePoint Server 2019","Exchange Server 2019","System Center 2019"],2,"Exchange Server 2019.",0);
+T(3,"რა არის MUA კომპონენტის ძირითადი დანიშნულება?",["სერვერებს შორის ტრანსპორტირება","ჩამოტვირთვა და Inbox-ში განთავსება","მომხმარებლისთვის ელფოსტის შექმნისა და წაკითხვის ინტერფეისი","ბაზების ინდექსირება"],2,"MUA = საფოსტო კლიენტი (Outlook).",0);
+T(3,"რომელი Microsoft აპლიკაცია გამოიყენება კოლაბორაციული სერვერისთვის?",["IIS Manager","SharePoint Server 2019","Skype for Business","System Center Endpoint Protection"],1,"SharePoint Server 2019.",0);
+T(3,"რომელი როლი გამოიყენება WS2019-ში ვებ-საიტებისა და აპლიკაციების ჰოსტინგისთვის?",["AD DS","Web Server (IIS)","RDS","PDS"],1,"Web Server (IIS).",0);
+T(3,"რა უპირატესობას იძლევა IIS-ში Application Pools / Separate Worker Processes?",["ზრდის ინტერნეტის სიჩქარეს","ერთი აპლიკაციის გათიშვა სხვა აუზებზე გავლენას არ ახდენს","ავტომატური Backup","DNS ჩანაწერების განახლება"],1,"იზოლაცია.",0);
+T(3,"რომელი პროტოკოლი და პორტი გამოიყენება დაშიფრული კომუნიკაციისთვის SSL/TLS-ით?",["HTTP (80)","FTP (21)","HTTPS (443)","SSH (22)"],2,"HTTPS 443.",0);
+T(3,"IIS-ში რას წარმოადგენს Virtual Directory?",["დისკის დაყოფას","URL კატალოგის სახელის დაკავშირებას ფაილური სისტემის საქაღალდესთან","ვირტუალურ მანქანას ბრაუზერით","SMB გაზიარებას"],1,"URL ალიასი → ფიზიკური საქაღალდე.",0);
+T(3,"რას წარმოადგენს აპლიკაციათა სერვერი IT ინფრასტრუქტურაში?",["მხოლოდ ფაილების შენახვის სერვერს","სერვერს, რომელიც უზრუნველყოფს სერვისებსა და ბიზნეს-ლოგიკის აპლიკაციებს","მოწყობილობას, რომელიც მხოლოდ IP-ებს არიგებს","როუტერს"],1,"ბიზნეს-ლოგიკა და სერვისები.",0);
+T(3,"რომელი პროტოკოლით ჩამოტვირთავს კლიენტი წერილებს ლოკალურ კომპიუტერზე (პორტი 110)?",["SMTP","POP3","DNS","DHCP"],1,"POP3 110.",0);
+// ვარიანტები
+T(3,"ჩამოთვლილთაგან რომელი არ არის მეილ სერვერის კომპონენტი?",["MTA","MDA","MUA","MDT"],3,"კომპონენტები: MTA, MDA, MUA. MDT — Deployment Toolkit.");
+T(3,"მეილ სერვერის რომელი კომპონენტი განათავსებს წერილს მომხმარებლის Inbox-ში?",["MTA","MDA","MUA","SMTP"],1,"MDA — Mail Delivery Agent.");
+T(3,"Microsoft Outlook მეილ არქიტექტურაში წარმოადგენს:",["MTA-ს","MDA-ს","MUA-ს","SMTP სერვერს"],2,"MUA — საფოსტო კლიენტი.");
+T(3,"რომელი პროტოკოლი არ გამოიყენება მეილ სერვერის მიერ?",["SMTP","POP3","IMAP4","DHCP"],3,"მეილი: SMTP, POP3, IMAP4.");
+T(3,"IMAP4-ის ნაგულისხმევი პორტია:",["25","110","143","443"],2,"IMAP4 — 143.");
+T(3,"რომელი პროტოკოლი კითხულობს და სინქრონიზებს წერილებს სერვერთან წაშლის გარეშე?",["POP3","IMAP4","SMTP","FTP"],1,"IMAP4.");
+T(3,"რომელი შესაბამისობაა სწორი?",["SMTP — 110","POP3 — 25","IMAP4 — 143","HTTP — 443"],2,"SMTP 25, POP3 110, IMAP4 143, HTTP 80.");
+T(3,"FTP იყენებს პორტებს:",["20/21","25","80","110"],0,"FTP 20/21.");
+T(3,"DHCP კლიენტი პასუხებს იღებს UDP პორტზე:",["67","68","53","80"],1,"კლიენტი — 68.");
+T(3,"ჩამოთვლილთაგან რომელი არ არის მონაცემთა ბაზასთან წვდომის პროტოკოლი/API?",["ODBC","JDBC","OLE DB","SNMP"],3,"ბაზები: ODBC, JDBC, OLE DB.");
+T(3,"რომელი API გამოიყენება Java აპლიკაციების ბაზასთან დასაკავშირებლად?",["ODBC","JDBC","OLE DB","ASP"],1,"JDBC (Sun Microsystems).");
+T(3,"რომელი ტექნოლოგია შეიმუშავა Microsoft-მა რელაციურ და არარელაციურ მონაცემთა წყაროებთან წვდომისთვის?",["JDBC","OLE DB","LDAP","SMTP"],1,"OLE DB.");
+T(3,"ჩამოთვლილთაგან რომელი არ მიეკუთვნება აპლიკაციათა სერვერების კატეგორიას?",["მეილ სერვერი","მონაცემთა ბაზის სერვერი","კოლაბორაციული სერვერი","DHCP Relay Agent"],3,"აპლიკაციური: მეილ, DB, კოლაბორაციული, მონიტორინგი, საფრთხეების მართვა.");
+T(3,"რომელი Microsoft პროდუქტი გამოიყენება მონიტორინგ სერვერად?",["System Center 2019 Operations Manager","SharePoint Server 2019","Exchange Server 2019","IIS Manager"],0,"SCOM.");
+T(3,"რომელი ტექნოლოგია გამოიყენება IIS-ზე დინამიური ვებ-გვერდების შესაქმნელად?",["HTML მხოლოდ","ASP (Active Server Pages)","SMTP","LDAP"],1,"ASP.");
+T(3,"SSL მუშაობს პროტოკოლით:",["HTTP (80)","HTTPS (443)","FTP (21)","SMTP (25)"],1,"HTTPS 443.");
+T(3,"რომელი არის ციფრული სერტიფიკატების გამცემი სერვისი Windows Server-ში?",["AD CS (Certification Authority)","AD DS","RDS","IPAM"],0,"CA = AD CS.");
+T(3,"სერტიფიკატების შექმნის, გაცემის, მართვისა და გაუქმების სრულ ინფრასტრუქტურას ეწოდება:",["CA","PKI","VPN","RSAT"],1,"PKI.");
+T(3,"რომელი ტექნოლოგია ქმნის დაშიფრულ გვირაბს საჯარო ინტერნეტით შიდა ქსელამდე?",["VPN","WINS","IPAM","FTP"],0,"VPN.");
+T(3,"ჩამოთვლილთაგან რომელი არ შედის Remote Access როლში?",["VPN","DirectAccess","RRAS","Print Spooler"],3,"Remote Access: VPN, DirectAccess, RRAS, Web Application Proxy.");
+T(3,"Windows 10/11-ზე დისტანციური სერვერის მართვისთვის ინსტალირდება:",["RSAT","RDS","WDS","IIS"],0,"RSAT.");
+T(3,"RDS-ის ძველი სახელია:",["Terminal Services","Remote Access Services","Windows Deployment Services","Directory Services"],0,"Terminal Services.");
+T(3,"რომელი კომპონენტი ფუთავს RDP ტრაფიკს HTTPS-ში (443) ფაირვოლის გავლით?",["RDS Session Host","RDG (Remote Desktop Gateway)","VPN","RSAT"],1,"RDG.");
+T(3,"RDS მომხმარებლებს წვდომას აძლევს პროტოკოლით:",["RDP","SMTP","FTP","LDAP"],0,"RDP.");
+T(3,"რომელი ტექნოლოგია უზრუნველყოფს მრავალი DNS და DHCP სერვერის, IP სივრცისა და სუბნეტების ცენტრალიზებულ მართვას?",["IPAM","WINS","RSAT","ODBC"],0,"IPAM.");
+T(3,"ფაილ სერვერი ფაილებს ქსელში აზიარებს პროტოკოლებით:",["SMB/NFS","SMTP/POP3","HTTP/FTP","LDAP/Kerberos"],0,"File and Storage Services — SMB/NFS.");
+T(3,"IIS-ში Document Root-ის ნაგულისხმევი საქაღალდეა:",["C:\\inetpub\\wwwroot","C:\\Windows\\System32\\spool","C:\\Program Files\\IIS","C:\\Users\\Public"],0,"C:\\inetpub\\wwwroot.");
+T(3,"ჩამოთვლილთაგან რომელ სერვისს არ უწევს ჰოსტინგს IIS?",["HTTP","FTP","ASP.NET","DHCP"],3,"IIS: HTTP, HTTPS, FTP, SMTP, ASP.NET.");
+T(3,"რომელი არის DHCP Option 003?",["DNS Servers","Default Gateway (Router)","Lease Duration","Domain Name"],1,"003 — Default Gateway; 006 — DNS.");
+T(3,"რომელი არის DHCP Option 006?",["Default Gateway","DNS Servers","Subnet Mask","WINS"],1,"006 — DNS Servers.");
+T(3,"DHCP Relay Agent საჭიროა, რადგან:",["DHCP არ მუშაობს LAN-ში","როუტერები არ ატარებენ DHCPDISCOVER ბროადქასტ პაკეტებს","DNS ბლოკავს DHCP-ს","DHCP იყენებს TCP-ს"],1,"ბროადქასტი სხვა სეგმენტზე არ გადადის.");
+T(3,"რომელი დებულებაა არასწორი DHCP-ზე?",["DHCP IP-ებს იჯარით გასცემს","DHCP Reservation MAC-ზეა დაფუძნებული","DHCP სერვერი უსმენს UDP 67-ს","DHCP ჰოსტინგს უწევს ვებსაიტებს"],3,"ვებ-ჰოსტინგი IIS-ის საქმეა.");
+T(3,"HTML არის:",["ქსელური პროტოკოლი","მარკირების ენა ვებ-გვერდების სტრუქტურისთვის","ვებ-სერვერი","მონაცემთა ბაზა"],1,"Hypertext Markup Language.");
+T(3,"WWW-ში რესურსები იდენტიფიცირდება:",["MAC მისამართებით","URL-ებით","SID-ებით","GUID-ებით"],1,"URL + ჰიპერლინკები + HTTP/HTTPS.");
+T(3,"სისტემის ადმინისტრატორის საბაზო დონის Microsoft სერტიფიკაციაა:",["MTA (მაგ. 98-365)","MCSA","MCSD","CCNA"],0,"MTA — საბაზო.");
+T(3,"Microsoft-ის გამოცდები ბარდება ცენტრებში:",["Certiport და Pearson VUE","Coursera და Udemy","Cisco NetAcad","CompTIA მხოლოდ"],0,"Certiport, Pearson VUE.");
+T(3,"ჩამოთვლილთაგან რომელი არ არის სისტემის ადმინისტრატორის ამოცანა?",["DNS/DHCP-ის გამართვა","AD ობიექტების მართვა","Backup-ის შექმნა","ბუღალტრული ბალანსის შედგენა"],3,"ადმინისტრატორი მართავს ინფრასტრუქტურას.");
+T(3,"WSUS გამოიყენება:",["განახლებების მართვისთვის","ფოსტის გასაგზავნად","ვებსაიტების ჰოსტინგისთვის","IP-ების გასაცემად"],0,"WSUS — Windows Server Update Services.");
+T(3,"რომელი ფუნქცია არ შეესაბამება ვებ სერვერს?",["HTTP/HTTPS მოთხოვნების დამუშავება","ვებ-გვერდების მიწოდება","ვებ-აპლიკაციების ჰოსტინგი","IP მისამართების გაცემა"],3,"IP-ებს DHCP გასცემს.");
+
+// ===================== ქვიზი 4 =====================
+D(4,"Print Server (პრინტ სერვერი)","სერვერი ან როლი (PDS-ის ნაწილი), რომელიც ცენტრალიზებულად მართავს ქსელურ პრინტერებს, დროებით ინახავს ბეჭდვის დავალებებს (Spooling), მართავს ბეჭდვის რიგებს და კლიენტებს ავტომატურად აწვდის დრაივერებს.");
+D(4,"Network Printing (ქსელური ბეჭდვა)","ბეჭდვის პროცესი ქსელში, სადაც კლიენტები დავალებებს ქსელით გადასცემენ ქსელურ პრინტერს ან ცენტრალიზებულ პრინტ სერვერს.");
+D(4,"Print Driver (პრინტერის დრაივერი)","პროგრამული კომპონენტი, რომლითაც OS და Print Spooler დოკუმენტს გარდაქმნის (Render) კონკრეტული საბეჭდი მოწყობილობისთვის გასაგებ ფორმატში — „თარჯიმანი“ OS-სა და პრინტერს შორის.");
+D(4,"SMTP","სტანდარტული პროტოკოლი (TCP 25) ელფოსტის გადაცემისთვის მეილ სერვერებს შორის (MTA) და კლიენტიდან სერვერზე.");
+D(4,"App-V (Application Virtualization)","Microsoft-ის ტექნოლოგია, რომელიც ვირტუალიზებულ აპლიკაციებს სერვერიდან სერვისად აწვდის; მომხმარებლისთვის ისინი ლოკალურად დაინსტალირებულივით მუშაობს.");
+D(4,"MDOP (Microsoft Desktop Optimization Pack)","Microsoft-ის ინსტრუმენტების პაკეტი (მოიცავს App-V-ს) დესკტოპების ოპტიმიზაციის, აპლიკაციების ვირტუალიზაციისა და მართვისთვის.");
+D(4,"PDS (Print and Document Services)","WS2019-ის როლი ბეჭდვისა და სკანირების სერვისების ცენტრალიზებული მართვისთვის; მოიცავს Print Server, Internet Printing და LPD Service კომპონენტებს.");
+D(4,"LPD (Line Printer Daemon)","UNIX/Linux-ის ბეჭდვის გაზიარების სერვისი Windows Server-ში — არავინდოუსურ სისტემებს აძლევს LPR-ით ბეჭდვის საშუალებას.");
+D(4,"LPR (Line Printer Request)","პორტის ტიპი და კლიენტური პროტოკოლი ბეჭდვის დავალებების გასაგზავნად LPD სერვისის მქონე პრინტ სერვერზე.");
+D(4,"Internet Printing","PDS-ის როლის სერვისი, რომელიც HTTP/HTTPS-ით და IPP-ით (IIS-ის გავლით) აძლევს ინტერნეტით/ექსტრანეტით ბეჭდვის საშუალებას.");
+D(4,"Local Printer","საბეჭდი მოწყობილობა, რომელიც ფიზიკურად პირდაპირ არის მიერთებული კომპიუტერთან (USB, LPT); მასპინძელს შეუძლია მისი გაზიარება.");
+D(4,"Network Printer","დამოუკიდებელი საბეჭდი მოწყობილობა საკუთარი ქსელური ინტერფეისით (Ethernet, Wi-Fi, Bluetooth) და საკუთარი IP მისამართით.");
+D(4,"Printer Pooling","ორი ან მეტი იდენტური (ერთი დრაივერის) ფიზიკური მოწყობილობის გაერთიანება ერთ ლოგიკურ პრინტერში; დავალება მიდის პირველ თავისუფალზე — დატვირთვის ბალანსი.");
+D(4,"Web Printing","ბრაუზერით ბეჭდვა (http://servername/printers) და Web Management — რიგისა და საკუთარი დავალებების მართვა ბრაუზერიდან.");
+D(4,"Print Device","Microsoft-ის ტერმინოლოგიით — ფიზიკური საბეჭდი აპარატურა.");
+D(4,"Printer (ტერმინი)","Microsoft-ის ტერმინოლოგიით — ფიზიკური საბეჭდი მოწყობილობის პროგრამული წარმოდგენა OS-ში.");
+D(4,"Print Spooler","Windows-ის სისტემური სერვისი — იღებს დავალებებს, დროებით ინახავს C:\\Windows\\System32\\spool\\PRINTERS-ში და გადასცემს საბეჭდ მოწყობილობას.");
+D(4,"Spooling","ბეჭდვის დავალებების დროებით შენახვა spool საქაღალდეში, სანამ მოწყობილობა მზად იქნება.");
+D(4,"Print Queue (ბეჭდვის რიგი)","ბეჭდვის დავალებების ჩამონათვალი, რომლებიც ელოდებიან საბეჭდი მოწყობილობის მიერ დამუშავებას.");
+D(4,"PRINT$","პრინტ სერვერის ფარული გაზიარებული საქაღალდე, საიდანაც კლიენტები ავტომატურად იწერენ დრაივერებს.");
+D(4,"BODP (Branch Office Direct Printing)","ფილიალის კლიენტები ბეჭდავენ პირდაპირ ფილიალის ქსელურ პრინტერზე ცენტრალური პრინტ სერვერის გვერდის ავლით — WAN ტრაფიკის დაზოგვა.");
+D(4,"IPP (Internet Printing Protocol)","ბეჭდვის პროტოკოლი HTTP/HTTPS-ის გავლით; Windows Server-ის პრინტერების გაზიარების ერთ-ერთი პროტოკოლი (SMB და LPD-სთან ერთად).");
+D(4,"User Rights (მომხმარებელთა უფლებები)","მომხმარებლის/ჯგუფის სისტემური უფლებამოსილებები OS-ში (ლოკალურად შესვლა, დროის შეცვლა, გათიშვა); ინიშნება User Rights Assignment-ით.");
+D(4,"NTFS Permissions","წესები NTFS/ReFS ტომის ფაილებსა და საქაღალდეებზე წვდომისთვის; მოქმედებს ლოკალურადაც და ქსელიდანაც: Full control, Modify, Read & execute, List folder contents, Read, Write, Special.");
+D(4,"Share Permissions","ქსელით (SMB/NFS) გაზიარებულ საქაღალდეებზე წვდომის უფლებები — მოქმედებს მხოლოდ ქსელიდან წვდომისას: Full Control, Change, Read.");
+D(4,"Effective Access","რეალური წვდომა ქსელიდან — Share და NTFS ნებართვების ყველაზე შეზღუდული კომბინაცია.");
+D(4,"Take Ownership","ფაილის/საქაღალდის მფლობელობის აღება; Administrators ჯგუფს ყოველთვის აქვს ეს უფლება.");
+D(4,"Deny vs Allow","Windows-ის უსაფრთხოების მოდელში პირდაპირი Deny ყოველთვის სჭარბობს Allow-ს.");
+D(4,"Printer Permissions","პრინტერის ნებართვები: Print, Manage Printers, Manage Documents, View Server, Manage Server.");
+D(4,"Print Management","ინსტრუმენტი/კონსოლი ორგანიზაციაში ბეჭდვის პროცესების, რიგების, უფლებებისა და წვდომების ცენტრალიზებული კონტროლისა და მონიტორინგისთვის.");
+
+O(4,"რა არის პრინტ სერვერის ფუნქცია?","ცენტრალიზებულად მართავს და ინაწილებს საბეჭდ მოწყობილობებს ქსელში: ქმნის გაზიარებულ პრინტერებს და მართავს წვდომას; იღებს დავალებებს, დროებით ინახავს (Spooling) და მართავს რიგებს (Print Queues); ცენტრალიზებულად ავრცელებს დრაივერებს და ახდენს მონიტორინგს.");
+O(4,"რა არის Internet Printing?","PDS როლის სერვისი, რომელიც იყენებს HTTP/HTTPS-ს და IPP-ს; აკონფიგურირებს IIS-ს და მომხმარებლებს აძლევს გაზიარებულ პრინტერებზე ბეჭდვის საშუალებას ინტერნეტით ან ექსტრანეტით.");
+O(4,"რა არის local printer?","საბეჭდი მოწყობილობა, რომელიც ფიზიკურად პირდაპირ არის მიერთებული კომპიუტერის პორტთან (USB, Parallel/LPT); ემსახურება ამ კომპიუტერს, თუმცა მასპინძელს შეუძლია ქსელში გაზიარება.");
+O(4,"რა არის network printer?","დამოუკიდებელი საბეჭდი მოწყობილობა, ჩართული ქსელში საკუთარი ინტერფეისით (Ethernet, Wi-Fi, Bluetooth) და საკუთარი IP-ით; დავალებებს იღებს უშუალოდ ქსელით.");
+O(4,"რა არის printer pooling?","ორი ან მეტი ფიზიკური მოწყობილობის (იდენტური ან ერთი დრაივერით) გაერთიანება ერთ ლოგიკურ პრინტერად; დავალება მიდის პირველ თავისუფალ მოწყობილობაზე — დატვირთვის ბალანსი და ეფექტურობა.");
+O(4,"რა არის web printing?","ფაილების ბეჭდვა ვებ-ბრაუზერით (http://servername/printers) და Web Management — ბრაუზერიდან ბეჭდვის რიგის თვალყურის დევნება და საკუთარი დავალებების მართვა.");
+O(4,"რა არის მომხმარებელთა უფლებები (User Rights)?","მომხმარებლის/ჯგუფის სისტემური უფლებამოსილებები OS-ში (ლოკალურად შესვლა, დროის შეცვლა, გათიშვა); ინიშნება ჯგუფური პოლიტიკით (User Rights Assignment) და განსხვავდება Permissions-ისგან, რომლებიც ობიექტებს ეხება.");
+O(4,"რას გულისხმობს NTFS წვდომები?","წესები NTFS/ReFS ტომზე ფაილებსა და საქაღალდეებზე წვდომის დონისთვის; მოქმედებს ლოკალურადაც და ქსელიდანაც. საბაზო: Full control, Modify, Read & execute, List folder contents, Read, Write, Special permissions.");
+O(4,"რა არის დაშეარების (Share) ნებართვები?","ქსელით (SMB/NFS) გაზიარებულ საქაღალდეებზე წვდომის უფლებები; მოქმედებს მხოლოდ ქსელიდან დაკავშირებისას. თუ საქაღალდე NTFS ტომზეა, საჭიროა როგორც Share, ისე NTFS ნებართვა.");
+O(4,"რა წვდომის ტიპები არსებობს?","NTFS/ReFS: Full control, Modify, Read & execute, List folder contents, Read, Write, Special. Share: Full Control, Change, Read. პრინტერის: Print, Manage Printers, Manage Documents, View Server, Manage Server. თითოეული — Allow ან Deny.");
+O(4,"რამდენი ტიპისაა დაშეარების ნებართვები?","3: Full Control — წაკითხვა, გაშვება, მოდიფიკაცია, წაშლა, ნებართვების შეცვლა, მფლობელობის აღება; Change — წაკითხვა, გაშვება, შექმნა, მოდიფიკაცია, წაშლა; Read — მხოლოდ ნახვა და გაშვება.");
+// ვარიანტები
+O(4,"რა განსხვავებაა Print Device-სა და Printer-ს შორის Microsoft-ის ტერმინოლოგიით?","Print Device — ფიზიკური საბეჭდი აპარატურა. Printer — მისი პროგრამული წარმოდგენა (ობიექტი/სახელი) OS-ში.",true);
+O(4,"რა არის Print Spooler და სად ინახავს დავალებებს?","Windows-ის სისტემური სერვისი, რომელიც იღებს ბეჭდვის დავალებებს, დროებით ინახავს C:\\Windows\\System32\\spool\\PRINTERS-ში და აგზავნის საბეჭდ მოწყობილობაზე.",true);
+O(4,"რა განსხვავებაა local და network printer-ს შორის?","Local — ფიზიკურად მიერთებულია კომპიუტერთან (USB/LPT). Network — დამოუკიდებელია, აქვს საკუთარი ქსელური ინტერფეისი და IP მისამართი.",true);
+O(4,"რომელი პროტოკოლებით აზიარებს Windows Server პრინტერებს?","SMB (ნაგულისხმევი), IPP (HTTP/HTTPS-ით) და LPD (UNIX/Linux-ისთვის).",true);
+O(4,"რა არის Branch Office Direct Printing (BODP)?","ფილიალის კლიენტების დავალებები პირდაპირ მიდის ფილიალის ქსელურ პრინტერზე ცენტრალური პრინტ სერვერის გვერდის ავლით (სერვერი მხოლოდ უფლებას ამოწმებს) — WAN ტრაფიკის დაზოგვა.",true);
+O(4,"რა განსხვავებაა User Rights-სა და Permissions-ს შორის და სად კონფიგურირდება User Rights?","User Rights — სისტემური მოქმედებები (ლოკალურად შესვლა, დროის შეცვლა). Permissions — ობიექტებზე (ფაილი, საქაღალდე, პრინტერი) წვდომა. User Rights: Computer Configuration → Windows Settings → Security Settings → Local Policies → User Rights Assignment.",true);
+O(4,"როგორ განისაზღვრება ეფექტური წვდომა, როცა ქსელით უკავშირდებით საქაღალდეს Share და NTFS ნებართვებით?","გამოიყენება ყველაზე შეზღუდული (most restrictive) კომბინაცია. მაგ. Share: Read + NTFS: Full Control = Read.",true);
+O(4,"რა ემართება NTFS ნებართვებს ფაილის გადატანისას (Move) და კოპირებისას (Copy)?","Move იმავე ტომის შიგნით — ფაილი ინარჩუნებს თავდაპირველ ნებართვებს. Copy (მათ შორის სხვა ტომზე) — ფაილი მემკვიდრეობით იღებს სამიზნე საქაღალდის ნებართვებს.",true);
+O(4,"რა ხდება, თუ მომხმარებელს ერთი ჯგუფით აქვს Allow, მეორე ჯგუფით კი Deny?","Deny ყოველთვის სჭარბობს Allow-ს — წვდომა უარყოფილია.",true);
+O(4,"ჩამოთვალეთ PDS როლის კომპონენტები.","Print Server, Internet Printing, LPD Service.",true);
+O(4,"რა განსხვავებაა LPD-სა და LPR-ს შორის?","LPD — სერვერული სერვისი (Line Printer Daemon) Windows Server-ზე, რომელიც იღებს UNIX/Linux-ის ბეჭდვის დავალებებს. LPR — კლიენტური პროტოკოლი/პორტის ტიპი, რომლითაც დავალებები იგზავნება LPD-მქონე სერვერზე.",true);
+O(4,"რა არის App-V და MDOP?","App-V — აპლიკაციების ვირტუალიზაცია: აპლიკაციები სერვერიდან სერვისად მიეწოდება და ლოკალურად დაყენებულივით მუშაობს. MDOP — Microsoft Desktop Optimization Pack, ინსტრუმენტების პაკეტი (მათ შორის App-V) დესკტოპების ოპტიმიზაციისა და მართვისთვის.",true);
+O(4,"რა არის PRINT$ გაზიარება?","პრინტ სერვერის ფარული გაზიარებული საქაღალდე, საიდანაც კლიენტები პრინტერზე მიერთებისას ავტომატურად იწერენ დრაივერებს.",true);
+
+T(4,"რა განსხვავებაა „Print Device“-სა და „Printer“-ს შორის Microsoft-ის ტერმინოლოგიაში?",["Print Device — პროგრამული წარმოდგენა, Printer — ფიზიკური აპარატურა","Print Device — ფიზიკური აპარატურა, Printer — მისი პროგრამული წარმოდგენა OS-ში","ორივე იდენტურია","Print Device — მხოლოდ ქსელური, Printer — USB"],1,"Print Device = აპარატურა; Printer = OS-ის ობიექტი.",0);
+T(4,"რომელი როლი უნდა დაინსტალირდეს WS2019-ში Print Management კონსოლისა და ცენტრალიზებული ბეჭდვისთვის?",["File and Storage Services","Remote Access","Print and Document Services (PDS)","AD Rights Management Services"],2,"PDS + Print Server როლის სერვისი.",0);
+T(4,"რა ჰქვია სერვისს, რომელიც იღებს ბეჭდვის დავალებებს, ინახავს C:\\Windows\\System32\\spool\\PRINTERS-ში და აგზავნის მოწყობილობაზე?",["Print Management Service","Print Spooler","Line Printer Daemon (LPD)","Document Router Service"],1,"Print Spooler.",0);
+T(4,"რა არის Printer Pooling-ის ძირითადი დანიშნულება?",["ერთი პრინტერის დაყოფა ვირტუალურ პრინტერებად","ორი ან მეტი იდენტური მოწყობილობის გაერთიანება ერთ ლოგიკურ პრინტერში დატვირთვის გადასანაწილებლად","დრაივერების ავტომატური განახლება","დავალებების SSL/TLS დაშიფვრა"],1,"დატვირთვის ბალანსი.",0);
+T(4,"რა ჰქვია პრინტ სერვერის ფარულ გაზიარებას, საიდანაც კლიენტები დრაივერებს იწერენ?",["SPOOL$","DRIVERS$","PRINT$","PRINTERS$"],2,"PRINT$.",0);
+T(4,"რომელი პროტოკოლები გამოიყენება WS2019 პრინტ სერვერიდან პრინტერების გაზიარებისთვის?",["მხოლოდ HTTP და HTTPS","SMB, IPP და LPD","FTP, SFTP და TFTP","მხოლოდ RDP და ICA"],1,"SMB, IPP, LPD.",0);
+T(4,"რას უზრუნველყოფს Branch Office Direct Printing (BODP)?",["ფილიალის დავალებები პირდაპირ ფილიალის ქსელურ პრინტერზე მიდის ცენტრალური სერვერის გვერდის ავლით","ყიდულობს ქაღალდს და ტონერს","კრძალავს ბეჭდვას სამუშაო საათების შემდეგ","ბეჭდავს მხოლოდ PDF-ს"],0,"WAN ტრაფიკის დაზოგვა.",0);
+T(4,"რა ძირითადი განსხვავებაა User Rights-სა და Permissions-ს შორის?",["User Rights — ფაილებზე, Permissions — სისტემურ მოქმედებებზე","User Rights — სისტემური უფლებამოსილებები, Permissions — ობიექტებზე წვდომის ტიპი","User Rights მხოლოდ Linux-შია","სინონიმებია"],1,"Rights = სისტემა, Permissions = ობიექტები.",0);
+T(4,"Group Policy-ში რომელ სექციაში კონფიგურირდება User Rights Assignment?",["User Configuration → Administrative Templates → Control Panel","Computer Configuration → Windows Settings → Security Settings → Local Policies → User Rights Assignment","Computer Configuration → Software Settings","User Configuration → Preferences → Control Panel Settings"],1,"Computer Configuration → ... → User Rights Assignment.",0);
+T(4,"რომელი ჩაშენებული ჯგუფის წევრებს აქვთ ნაგულისხმევად Take Ownership უფლება ნებისმიერ ფაილზე?",["Users","Guests","Administrators","Remote Desktop Users"],2,"Administrators.",0);
+T(4,"NTFS-ში ერთი ჯგუფით Read (Allow), მეორით Read (Deny) — რა იქნება საბოლოო უფლება?",["Read, რადგან Allow სჭარბობს","წვდომა უარყოფილია (Deny სჭარბობს Allow-ს)","შემთხვევითი","Full Control"],1,"Deny > Allow.",0);
+T(4,"რა ემართება ფაილის NTFS ნებართვებს Move-ისას იმავე NTFS ტომის შიგნით?",["იღებს სამიზნე საქაღალდის ნებართვებს","ინარჩუნებს თავდაპირველ ნებართვებს","ეშლება ყველა ნებართვა","იშიფრება EFS-ით"],1,"Move იმავე ტომზე — ინარჩუნებს.",0);
+T(4,"რა ემართება ფაილის NTFS ნებართვებს Copy-ისას ერთი NTFS ტომიდან მეორეზე?",["ინარჩუნებს თავდაპირველს","მემკვიდრეობით იღებს სამიზნე საქაღალდის ნებართვებს","ხდება მიუწვდომელი","გარდაიქმნება Share ნებართვებად"],1,"Copy — სამიზნის ნებართვები.",0);
+T(4,"რომელი არ არის Share Permission Windows Server-ში?",["Read","Change","Full Control","Modify"],3,"Modify — NTFS ნებართვაა.",0);
+T(4,"Share: Read და NTFS: Full Control — რა იქნება ეფექტური წვდომა ქსელიდან?",["Full Control","Read (ყველაზე შეზღუდული კომბინაცია)","Change","დაიბლოკება"],1,"Most restrictive.",0);
+T(4,"რა ფუნქციას ასრულებს spooling ბეჭდვის სერვერებში?",["დავალებების გაფილტვრა","ბეჭდვის დავალებების დროებით შენახვა","დაშიფვრა","მარშრუტიზაცია სწორ პრინტერზე"],1,"დროებით შენახვა spool საქაღალდეში.",0);
+T(4,"რომელი კომპონენტი უწყობს ხელს OS-სა და პრინტერს შორის კომუნიკაციას?",["Print manager","Print driver","Print server","Print queue"],1,"Print driver — „თარჯიმანი“.",0);
+T(4,"რა არის ბეჭდვის მართვის პროგრამის ძირითადი მიზანი ორგანიზაციაში?",["აპარატურის მართვა","ბეჭდვის გამოყენების თვალყურის დევნება და კონტროლი","დრაივერების მართვა","სერვერის ნებართვების მართვა"],1,"ცენტრალიზებული კონტროლი და მონიტორინგი.",0);
+T(4,"რომელი პროტოკოლი გამოიყენება დისტანციური სერვერიდან ელფოსტის მისაღებად (ტესტის მიხედვით)?",["HTTP","SMTP","IMAP","FTP"],2,"IMAP (143); POP3-იც მიღებისთვისაა; SMTP — გაგზავნისთვის.",0);
+T(4,"რა არის ძირითადი სარგებელი ბეჭდვის სერვერის გამოყენებისას?",["ბეჭდვითი სამუშაოების ცენტრალიზებული მართვა","ელფოსტის ანგარიშების მართვა","ფაილების შენახვის მართვა","ავთენტიფიკაციის მართვა"],0,"ცენტრალიზებული მართვა.",0);
+T(4,"რომელი ტერმინი ეხება დავალებების ჩამონათვალს, რომლებიც პრინტერის დამუშავებას ელოდება?",["Print queue","Spooling","Print driver","Print server"],0,"Print queue.",0);
+T(4,"რა არის ფოსტის სერვერის ძირითადი როლი WS2019 გარემოში?",["ბეჭდვის მართვა","ელექტრონული კომუნიკაციის მართვა","ავტორიზაციის მართვა","ფაილების შენახვა"],1,"MTA/MDA/MUA + SMTP/POP/IMAP.",0);
+// ვარიანტები
+T(4,"ჩამოთვლილთაგან რომელი არ არის PDS როლის კომპონენტი?",["Print Server","Internet Printing","LPD Service","DHCP Server"],3,"PDS: Print Server, Internet Printing, LPD Service.");
+T(4,"რომელი არ არის Windows Server-ის პრინტერების გაზიარების პროტოკოლი?",["SMB","IPP","LPD","SMTP"],3,"SMB, IPP, LPD.");
+T(4,"Spool საქაღალდის ნაგულისხმევი მისამართია:",["C:\\Windows\\System32\\spool\\PRINTERS","C:\\inetpub\\wwwroot","C:\\Windows\\system32\\drivers\\etc","C:\\PRINT$"],0,"spool\\PRINTERS.");
+T(4,"რომელი სერვისი აძლევს UNIX/Linux სისტემებს Windows პრინტ სერვერზე ბეჭდვის საშუალებას?",["IPP","LPD","Print$","BODP"],1,"LPD (კლიენტი იყენებს LPR-ს).");
+T(4,"LPR არის:",["სერვერული სერვისი","პორტის ტიპი და კლიენტური პროტოკოლი LPD სერვერთან დასაკავშირებლად","დრაივერის ტიპი","ბეჭდვის რიგი"],1,"Line Printer Request.");
+T(4,"Internet Printing იყენებს:",["HTTP/HTTPS და IPP (IIS-ის გავლით)","SMTP და POP3","LDAP და Kerberos","FTP და TFTP"],0,"IIS + IPP.");
+T(4,"Web Printing-ის სტანდარტული მისამართია:",["http://servername/printers","http://servername/print$","\\\\servername\\spool","ftp://servername/printers"],0,"http://servername/printers.");
+T(4,"Web Printing-ის Web Management ნაწილი საშუალებას აძლევს მომხმარებელს:",["შეცვალოს სერვერის დრაივერები","ბრაუზერიდან ადევნოს თვალი რიგს და მართოს საკუთარი დავალებები","დააინსტალიროს PDS","შეცვალოს NTFS ნებართვები"],1,"რიგისა და დავალებების მართვა.");
+T(4,"USB-ით კომპიუტერთან პირდაპირ მიერთებული პრინტერი არის:",["Network printer","Local printer","Printer pool","Internet printer"],1,"Local printer.");
+T(4,"საკუთარი IP მისამართისა და ქსელური ინტერფეისის მქონე პრინტერი არის:",["Local printer","Network printer","Virtual printer","LPT printer"],1,"Network printer.");
+T(4,"Printer Pooling-ისთვის ფიზიკური მოწყობილობები უნდა იყოს:",["სხვადასხვა მწარმოებლის","იდენტური ან ერთი და იმავე დრაივერის მქონე","მხოლოდ ლოკალური","მხოლოდ ფერადი"],1,"იდენტური/ერთი დრაივერი.");
+T(4,"Printer Pooling-ში ბეჭდვის დავალება იგზავნება:",["ყველა პრინტერზე ერთდროულად","პირველივე თავისუფალ მოწყობილობაზე","მხოლოდ პირველ პრინტერზე","შემთხვევით"],1,"პირველი თავისუფალი პორტი.");
+T(4,"რომელი არ არის NTFS-ის საბაზო ნებართვა?",["Full control","Modify","Read & execute","Change"],3,"Change — Share ნებართვაა.");
+T(4,"რომელი არის მხოლოდ Share ნებართვა (NTFS-ში არ არსებობს)?",["Read","Full Control","Change","Write"],2,"Change.");
+T(4,"რამდენი ტიპის Share ნებართვა არსებობს?",["2","3","5","7"],1,"Full Control, Change, Read.");
+T(4,"რომელი Share ნებართვა იძლევა ნებართვების შეცვლისა და მფლობელობის აღების უფლებას?",["Read","Change","Full Control","Modify"],2,"Full Control.");
+T(4,"Share ნებართვა Change იძლევა:",["მხოლოდ ნახვას","წაკითხვას, გაშვებას, შექმნას, მოდიფიკაციას და წაშლას","ნებართვების შეცვლას","მფლობელობის აღებას"],1,"Change — ყველაფერი გარდა ნებართვების/მფლობელობისა.");
+T(4,"Share ნებართვები მოქმედებს:",["მხოლოდ ლოკალურად შესვლისას","მხოლოდ ქსელით (SMB/NFS) დაკავშირებისას","ყოველთვის","მხოლოდ პრინტერებზე"],1,"მხოლოდ ქსელიდან.");
+T(4,"NTFS ნებართვები მოქმედებს:",["მხოლოდ ქსელიდან","მხოლოდ ლოკალურად","ლოკალურადაც და ქსელიდანაც","მხოლოდ FAT32-ზე"],2,"ორივე შემთხვევაში.");
+T(4,"Share: Full Control, NTFS: Read — რა არის ეფექტური წვდომა ქსელიდან?",["Full Control","Read","Change","Modify"],1,"ყველაზე შეზღუდული = Read.");
+T(4,"Share: Change, NTFS: Full Control — ეფექტური წვდომა ქსელიდან:",["Full Control","Change","Read","არცერთი"],1,"ყველაზე შეზღუდული = Change.");
+T(4,"Share: Read, NTFS: Full Control — მომხმარებელი ლოკალურად (არა ქსელით) შედის სერვერზე. რა იქნება მისი წვდომა?",["Read","Full Control","Change","არცერთი"],1,"ლოკალურად Share ნებართვები არ მოქმედებს — მოქმედებს მხოლოდ NTFS.");
+T(4,"ფაილი გადავიტანეთ (Move) იმავე NTFS ტომზე სხვა საქაღალდეში. რომელი დებულებაა სწორი?",["ფაილი იღებს ახალი საქაღალდის ნებართვებს","ფაილი ინარჩუნებს თავის ნებართვებს","ფაილს ეშლება ნებართვები","ფაილი ხდება Read-Only"],1,"Move იმავე ტომზე — ინარჩუნებს.");
+T(4,"რომელ შემთხვევაში იღებს ფაილი სამიზნე საქაღალდის NTFS ნებართვებს?",["Move იმავე ტომის შიგნით","Copy სხვა ტომზე","ფაილის გადარქმევისას","ფაილის გახსნისას"],1,"Copy — ყოველთვის სამიზნის ნებართვები.");
+T(4,"Windows-ის უსაფრთხოების მოდელში რომელი წესია სწორი?",["Allow ყოველთვის სჭარბობს Deny-ს","პირდაპირი Deny სჭარბობს Allow-ს","Deny მოქმედებს მხოლოდ ადმინისტრატორებზე","Allow და Deny ერთმანეთს აბათილებს და რჩება Full Control"],1,"Deny > Allow.");
+T(4,"ჩამოთვლილთაგან რომელი არის User Right და არა Permission?",["ფაილის Read","საქაღალდის Modify","სისტემაში ლოკალურად შესვლა (Log on locally)","პრინტერზე Print"],2,"სისტემური მოქმედება = User Right.");
+T(4,"სისტემური დროის შეცვლის შესაძლებლობა არის:",["NTFS Permission","Share Permission","User Right","Printer Permission"],2,"User Right.");
+T(4,"ჩამოთვლილთაგან რომელი არ არის პრინტერის ნებართვა?",["Print","Manage Documents","Manage Printers","Change"],3,"პრინტერის: Print, Manage Printers, Manage Documents, View Server, Manage Server.");
+T(4,"რომელი ტექნოლოგია აწვდის აპლიკაციებს სერვერიდან სერვისად ისე, თითქოს ლოკალურად იყოს დაყენებული?",["App-V","RDS Gateway","IPAM","LPD"],0,"App-V.");
+T(4,"MDOP მოიცავს:",["App-V-ს","IIS-ს","WINS-ს","Exchange-ს"],0,"Microsoft Desktop Optimization Pack — App-V და სხვა.");
+T(4,"Print Driver-ის ფუნქციაა:",["დავალებების დროებით შენახვა","დოკუმენტის გარდაქმნა (Render) კონკრეტული მოწყობილობისთვის გასაგებ ფორმატში","IP-ის მინიჭება პრინტერისთვის","პრინტერების გაერთიანება"],1,"„თარჯიმანი“ OS-სა და აპარატურას შორის.");
+T(4,"BODP-ის ჩართვისას პრინტ სერვერი:",["ბეჭდავს ყველა დავალებას თავად","მხოლოდ ამოწმებს უფლებას, ბეჭდვა კი პირდაპირ ფილიალის პრინტერზე ხდება","ბლოკავს ფილიალებს","აგზავნის დავალებებს ელფოსტით"],1,"WAN ტრაფიკის დაზოგვა.");
+T(4,"რომელი არ არის პრინტ სერვერის ფუნქცია?",["გაზიარებული პრინტერების შექმნა","Spooling და რიგების მართვა","დრაივერების გავრცელება","IP მისამართების დინამიური გაცემა"],3,"IP-ებს DHCP გასცემს.");
+T(4,"SMTP-ის ნაგულისხმევი პორტია:",["25","110","143","443"],0,"TCP 25.");
+T(4,"ელფოსტის გასაგზავნად/ტრანსპორტირებისთვის გამოიყენება:",["POP3","IMAP","SMTP","HTTP"],2,"SMTP; მიღებისთვის — POP3/IMAP.");
+T(4,"Print queue-ს ასევე ეწოდება:",["Spool Folder","PRINT$","Driver Store","LPR Port"],0,"მასალის მიხედვით — Spool Folder.");
+
+</script>
+<script>
+// ---------- auto-generated tests from definitions (definition <-> term) ----------
+const AUTO=[];
+(function(){
+  const short=t=>t;
+  for(const q of [1,2,3,4]){
+    const pool=DEFS.filter(d=>d.q===q);
+    pool.forEach((d,i)=>{
+      const others=shuffle(pool.filter(x=>x!==d)).slice(0,3);
+      if(others.length<3)return;
+      // definition -> which term
+      let opts=shuffle([d,...others]);
+      AUTO.push({q,s:"რომელ ტერმინს შეესაბამება განმარტება: „"+d.d+"“",o:opts.map(x=>x.t),a:[opts.indexOf(d)],e:d.t+" — "+d.d,kind:"auto"});
+      // term -> which definition
+      opts=shuffle([d,...others]);
+      AUTO.push({q,s:"რა არის "+d.t+"?",o:opts.map(x=>x.d),a:[opts.indexOf(d)],e:"",kind:"auto"});
+    });
+  }
+})();
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+const L="ABCD";
+const QN={1:"ქვიზი 1",2:"ქვიზი 2",3:"ქვიზი 3",4:"ქვიზი 4"};
+const KN={orig:"ორიგინალი",var:"ვარიანტი",auto:"განმარტებიდან"};
+function chips(x){let h='<span class="chip">'+QN[x.q]+'</span>';if(x.kind)h+='<span class="chip '+(x.kind==="var"?"v":x.kind==="auto"?"a":"")+'">'+KN[x.kind]+'</span>';else if(x.v)h+='<span class="chip v">ვარიანტი</span>';return h}
+// shuffle options of a test, keeping correct indices
+function prep(t){const idx=shuffle(t.o.map((_,i)=>i));return {...t,o:idx.map(i=>t.o[i]),a:t.a.map(c=>idx.indexOf(c)),src:t}}
+
+// ---------- storage (optional) ----------
+const store={get(k,d){try{const v=localStorage.getItem("sa_"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("sa_"+k,JSON.stringify(v))}catch(e){}}};
+let MIST=store.get("mist",[]); // stems of wrong tests
+function addMist(t){if(!MIST.includes(t.s)){MIST.push(t.s);store.set("mist",MIST)}}
+function delMist(t){MIST=MIST.filter(s=>s!==t.s);store.set("mist",MIST)}
+const ALLTESTS=()=>TESTS.concat(AUTO);
+
+// ---------- nav ----------
+document.getElementById("nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("main>section").forEach(s=>s.classList.toggle("hide",s.id!==b.dataset.t));
+  R[b.dataset.t]&&R[b.dataset.t]()};
+const R={};
+
+// ---------- home ----------
+R.home=function(){
+  const c=(arr,q)=>arr.filter(x=>x.q===q).length;
+  let rows="";for(const q of [1,2,3,4])rows+=`<tr><td>${QN[q]}</td><td>${c(DEFS,q)}</td><td>${c(OPENS,q)}</td><td>${c(TESTS,q)}</td><td>${c(AUTO,q)}</td></tr>`;
+  document.getElementById("home").innerHTML=`
+  <div class="note"><b>ლექტორის პირობა:</b> ბილეთში სიტყვასიტყვით არ იქნება ქვიზების კითხვები, მაგრამ შინაარსი იგივეა. კითხვა შეიძლება „ამოტრიალდეს“ — ღია კითხვა იქცეს ტესტად („რომელი არ არის…“), განმარტება — ტესტად, ტესტი — ღია კითხვად. ამიტომ აქ ყველა თემა რამდენიმე ფორმითაა წარმოდგენილი.</div>
+  <div class="stats" style="margin-top:14px">
+    <div class="stat"><b>${DEFS.length}</b><span class="mute">განმარტება</span></div>
+    <div class="stat"><b>${OPENS.length}</b><span class="mute">ღია კითხვა</span></div>
+    <div class="stat"><b>${TESTS.length}</b><span class="mute">ტესტი (ორიგ. + ვარიანტები)</span></div>
+    <div class="stat"><b>${AUTO.length}</b><span class="mute">ტესტი განმარტებებიდან</span></div>
+  </div>
+  <div class="card"><h3>როგორ ვიმეცადინო</h3>
+  <p style="margin:0">1) <b>ბარათები</b> — ჯერ გაიარე განმარტებები და ღია კითხვები. 2) <b>ტესტები</b> — ივარჯიშე ყველა ტესტზე (პასუხების ადგილი ყოველ ჯერზე იცვლება). 3) <b>ბილეთი</b> — გამოცდის სიმულაცია: 5 განმარტება + 5 ღია კითხვა + 10 ტესტი, შემთხვევით ყველა ქვიზიდან. 4) <b>შეცდომები</b> — გაიმეორე ის ტესტები, რომლებშიც შეცდი.</p></div>
+  <div class="card"><h3>ბაზის შემადგენლობა</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:14.5px"><tr style="text-align:left;color:var(--mute)"><th>ქვიზი</th><th>განმარტება</th><th>ღია</th><th>ტესტი</th><th>ტესტი განმ.-დან</th></tr>${rows}</table>
+  <p class="mute" style="margin:10px 0 0">ჭდეები: <span class="chip">ორიგინალი</span> — ქვიზიდან; <span class="chip v">ვარიანტი</span> — გადაფორმულირებული/ამოტრიალებული; <span class="chip a">განმარტებიდან</span> — ავტომატურად შედგენილი განმარტებიდან. სადაც ორიგინალ ტესტში ორაზროვნებაა, განმარტებაში მითითებულია.</p></div>`;
+};
+
+// ---------- ticket ----------
+let TK=null;
+function pickBalanced(arr,n,qs){
+  const by={};qs.forEach(q=>by[q]=shuffle(arr.filter(x=>x.q===q)));
+  const out=[];let i=0;const order=shuffle(qs);
+  while(out.length<n){const q=order[i%order.length];if(by[q].length)out.push(by[q].pop());i++;if(qs.every(q=>!by[q].length))break}
+  return shuffle(out);
+}
+R.ticket=function(){if(!TK)newTicket();else drawTicket()};
+function ticketQs(){return [1,2,3,4].filter(q=>document.getElementById("tq"+q)?document.getElementById("tq"+q).checked:true)}
+function newTicket(){
+  const qs=ticketQs();if(!qs.length)return;
+  const tpool=TESTS.concat(document.getElementById("tauto")&&!document.getElementById("tauto").checked?[]:AUTO.filter(x=>x.o.every(o=>o.length<140)));
+  TK={qs,defs:pickBalanced(DEFS,5,qs).map(x=>({x,txt:"",m:0,open:false})),opens:pickBalanced(OPENS,5,qs).map(x=>({x,txt:"",m:0,open:false})),tests:pickBalanced(tpool,10,qs).map(x=>({x:prep(x),sel:-1})),done:false};
+  drawTicket();
+}
+function drawTicket(){
+  const el=document.getElementById("ticket");const qs=TK.qs;
+  let h=`<div class="card filters"><div class="row"><b>ქვიზები:</b>${[1,2,3,4].map(q=>`<label><input type="checkbox" id="tq${q}" ${qs.includes(q)?"checked":""}> ${QN[q]}</label>`).join("")}<label><input type="checkbox" id="tauto" checked> ტესტები განმარტებებიდანაც</label></div>
+  <div class="row" style="margin-top:10px"><button class="btn" onclick="newTicket()">ახალი ბილეთი</button><span class="mute">დაწერე პასუხი, მერე დააჭირე „პასუხის ნახვა“ და თავად შეაფასე. ტესტები მოწმდება ბოლოს.</span></div></div>`;
+  h+=`<h2>I. განმარტეთ ტერმინები (5)</h2>`;
+  TK.defs.forEach((it,i)=>{h+=`<div class="card">${chips(it.x)}<div class="q"><span class="num">${i+1}.</span>${esc(it.x.t)} —</div>
+   <textarea oninput="TK.defs[${i}].txt=this.value" placeholder="შენი განმარტება...">${esc(it.txt)}</textarea>
+   <div class="row" style="margin-top:8px"><button class="btn sec" onclick="TK.defs[${i}].open=!TK.defs[${i}].open;drawTicket()">${it.open?"დამალვა":"პასუხის ნახვა"}</button>${selfMark("defs",i)}</div>
+   ${it.open?`<div class="ans">${esc(it.x.d)}</div>`:""}</div>`});
+  h+=`<h2>II. უპასუხეთ კითხვებს (5)</h2>`;
+  TK.opens.forEach((it,i)=>{h+=`<div class="card">${chips(it.x)}<div class="q"><span class="num">${i+1}.</span>${esc(it.x.t)}</div>
+   <textarea oninput="TK.opens[${i}].txt=this.value" placeholder="შენი პასუხი..." style="min-height:90px">${esc(it.txt)}</textarea>
+   <div class="row" style="margin-top:8px"><button class="btn sec" onclick="TK.opens[${i}].open=!TK.opens[${i}].open;drawTicket()">${it.open?"დამალვა":"პასუხის ნახვა"}</button>${selfMark("opens",i)}</div>
+   ${it.open?`<div class="ans">${esc(it.x.a)}</div>`:""}</div>`});
+  h+=`<h2>III. ტესტები (10)</h2>`;
+  TK.tests.forEach((it,i)=>{const t=it.x;h+=`<div class="card">${chips(t.src)}<div class="q"><span class="num">${i+1}.</span>${esc(t.s)}</div>`;
+    t.o.forEach((o,j)=>{let c="";if(TK.done){if(t.a.includes(j))c="ok";else if(it.sel===j)c="bad"}else if(it.sel===j)c="sel";
+      h+=`<button class="opt ${c}" ${TK.done?"disabled":""} onclick="TK.tests[${i}].sel=${j};drawTicket()"><span class="l">${L[j]})</span>${esc(o)}</button>`});
+    if(TK.done&&t.e)h+=`<div class="expl">${esc(t.e)}</div>`;h+=`</div>`});
+  if(!TK.done)h+=`<div class="row"><button class="btn" onclick="gradeTicket()">ბილეთის შემოწმება</button></div>`;
+  else{const ok=TK.tests.filter(it=>it.x.a.includes(it.sel)).length;const dm=TK.defs.filter(x=>x.m===1).length,om=TK.opens.filter(x=>x.m===1).length;
+    h+=`<div class="card"><div class="score">ტესტები: ${ok}/10 · განმარტებები: ${dm}/5 · ღია: ${om}/5</div><div class="mute">განმარტებები და ღია კითხვები შენი თვითშეფასებით ითვლება. არასწორი ტესტები დაემატა „შეცდომებს“.</div><div class="row" style="margin-top:10px"><button class="btn" onclick="newTicket()">შემდეგი ბილეთი</button></div></div>`}
+  el.innerHTML=h;
+}
+function selfMark(k,i){const m=TK[k][i].m;return `<div class="self"><button class="okb ${m===1?"on":""}" onclick="TK.${k}[${i}].m=1;drawTicket()">✓ ვიცოდი</button><button class="badb ${m===-1?"on":""}" onclick="TK.${k}[${i}].m=-1;drawTicket()">✗ ვერ ვიცოდი</button></div>`}
+function gradeTicket(){TK.done=true;TK.defs.concat(TK.opens).forEach(x=>x.open=true);TK.tests.forEach(it=>{if(!it.x.a.includes(it.sel))addMist(it.x.src);});drawTicket();window.scrollTo(0,document.body.scrollHeight)}
+
+// ---------- test practice ----------
+let TP=null;
+R.tests=function(){if(!TP)setupTests();else drawTest()};
+function setupTests(){
+  const el=document.getElementById("tests");
+  el.innerHTML=`<div class="card filters"><div class="row"><b>ქვიზები:</b>${[1,2,3,4].map(q=>`<label><input type="checkbox" class="pq" value="${q}" checked> ${QN[q]}</label>`).join("")}</div>
+  <div class="row" style="margin-top:8px"><b>ტიპი:</b><label><input type="checkbox" class="pk" value="orig" checked> ორიგინალი</label><label><input type="checkbox" class="pk" value="var" checked> ვარიანტები</label><label><input type="checkbox" class="pk" value="auto"> განმარტებებიდან</label></div>
+  <div class="row" style="margin-top:10px"><button class="btn" onclick="startTests()">დაწყება</button></div></div><div id="tbox"></div>`;
+}
+function startTests(){
+  const qs=[...document.querySelectorAll(".pq:checked")].map(x=>+x.value),ks=[...document.querySelectorAll(".pk:checked")].map(x=>x.value);
+  const pool=shuffle(ALLTESTS().filter(t=>qs.includes(t.q)&&ks.includes(t.kind)));
+  if(!pool.length)return;
+  TP={list:pool.map(prep),i:0,sel:-1,ok:0,bad:0};drawTest();
+}
+function drawTest(){
+  const box=document.getElementById("tbox");if(!box){setupTests();return}
+  if(!TP){box.innerHTML="";return}
+  if(TP.i>=TP.list.length){box.innerHTML=`<div class="card"><div class="score">დასრულდა: ${TP.ok} სწორი, ${TP.bad} შეცდომა</div><div class="row" style="margin-top:10px"><button class="btn" onclick="startTests()">თავიდან</button></div></div>`;return}
+  const t=TP.list[TP.i];const ans=TP.sel>=0;
+  let h=`<div class="card"><div class="row" style="justify-content:space-between"><div>${chips(t.src)}</div><div class="mute">${TP.i+1} / ${TP.list.length} · ✓ ${TP.ok} · ✗ ${TP.bad}</div></div>
+  <div class="bar"><div style="width:${100*TP.i/TP.list.length}%"></div></div><div class="q" style="margin-top:12px">${esc(t.s)}</div>`;
+  t.o.forEach((o,j)=>{let c="";if(ans){if(t.a.includes(j))c="ok";else if(TP.sel===j)c="bad"}
+    h+=`<button class="opt ${c}" ${ans?"disabled":""} onclick="answerTest(${j})"><span class="l">${L[j]})</span>${esc(o)}</button>`});
+  if(ans){if(t.e)h+=`<div class="expl">${esc(t.e)}</div>`;h+=`<div class="row" style="margin-top:12px"><button class="btn" onclick="TP.i++;TP.sel=-1;drawTest()">შემდეგი →</button></div>`}
+  box.innerHTML=h+`</div>`;
+}
+function answerTest(j){const t=TP.list[TP.i];TP.sel=j;if(t.a.includes(j)){TP.ok++;delMist(t.src)}else{TP.bad++;addMist(t.src)}drawTest()}
+
+// ---------- flashcards ----------
+let FC=null;
+R.flash=function(){if(!FC)setupFlash();else drawFlash()};
+function setupFlash(){
+  document.getElementById("flash").innerHTML=`<div class="card filters"><div class="row"><b>ქვიზები:</b>${[1,2,3,4].map(q=>`<label><input type="checkbox" class="fq" value="${q}" checked> ${QN[q]}</label>`).join("")}</div>
+  <div class="row" style="margin-top:8px"><b>რა:</b><label><input type="radio" name="fk" value="d" checked> განმარტებები</label><label><input type="radio" name="fk" value="o"> ღია კითხვები</label><label><input type="radio" name="fk" value="b"> ორივე</label></div>
+  <div class="row" style="margin-top:10px"><button class="btn" onclick="startFlash()">დაწყება</button></div></div><div id="fbox"></div>`;
+}
+function startFlash(){
+  const qs=[...document.querySelectorAll(".fq:checked")].map(x=>+x.value),k=document.querySelector("input[name=fk]:checked").value;
+  let pool=[];if(k!=="o")pool=pool.concat(DEFS.filter(x=>qs.includes(x.q)).map(x=>({q:x.q,f:x.t,b:x.d,tp:"განმარტება"})));
+  if(k!=="d")pool=pool.concat(OPENS.filter(x=>qs.includes(x.q)).map(x=>({q:x.q,f:x.t,b:x.a,tp:"ღია კითხვა",v:x.v})));
+  if(!pool.length)return;FC={list:shuffle(pool),i:0,flip:false,know:0,again:[]};drawFlash();
+}
+function drawFlash(){
+  const box=document.getElementById("fbox");if(!box){setupFlash();return}if(!FC)return;
+  if(FC.i>=FC.list.length){
+    box.innerHTML=`<div class="card"><div class="score">ვიცი: ${FC.know} · გასამეორებელი: ${FC.again.length}</div><div class="row" style="margin-top:10px">${FC.again.length?`<button class="btn" onclick="FC={list:shuffle(FC.again),i:0,flip:false,know:0,again:[]};drawFlash()">გასამეორებლების გავლა</button>`:""}<button class="btn sec" onclick="startFlash()">თავიდან</button></div></div>`;return}
+  const c=FC.list[FC.i];
+  box.innerHTML=`<div class="mute" style="margin-top:10px">${FC.i+1} / ${FC.list.length} · ${c.tp}</div>
+  <div class="card flash" onclick="FC.flip=!FC.flip;drawFlash()"><div>${chips(c)}</div><div style="font-weight:700;margin-top:8px">${esc(c.f)}</div>
+  ${FC.flip?`<div class="back">${esc(c.b)}</div>`:`<div class="mute" style="margin-top:12px">დააჭირე პასუხის სანახავად</div>`}</div>
+  <div class="row"><button class="btn" style="background:var(--ok)" onclick="FC.know++;FC.i++;FC.flip=false;drawFlash()">✓ ვიცი</button><button class="btn" style="background:var(--bad)" onclick="FC.again.push(FC.list[FC.i]);FC.i++;FC.flip=false;drawFlash()">✗ გავიმეორო</button></div>`;
+}
+
+// ---------- mistakes ----------
+let MP=null;
+R.mist=function(){
+  const el=document.getElementById("mist");
+  const pool=ALLTESTS().filter(t=>MIST.includes(t.s));
+  if(!MP||MP.done){
+    el.innerHTML=`<div class="card"><h3>შეცდომები: ${pool.length}</h3><p class="mute" style="margin:0 0 10px">აქ გროვდება ტესტები, რომლებშიც შეცდი (ტესტებსა და ბილეთში). სწორად უპასუხებ — სიიდან ამოიშლება.</p>
+    <div class="row"><button class="btn" ${pool.length?"":"disabled"} onclick="MP={list:shuffle(ALLTESTS().filter(t=>MIST.includes(t.s))).map(prep),i:0,sel:-1};drawMist()">გამეორება</button><button class="btn ghost" ${pool.length?"":"disabled"} onclick="if(confirm('გავასუფთავო სია?')){MIST=[];store.set('mist',MIST);R.mist()}">სიის გასუფთავება</button></div></div>`;return}
+  drawMist();
+};
+function drawMist(){
+  const el=document.getElementById("mist");
+  if(MP.i>=MP.list.length){MP.done=true;R.mist();return}
+  const t=MP.list[MP.i],ans=MP.sel>=0;
+  let h=`<div class="card"><div class="row" style="justify-content:space-between"><div>${chips(t.src)}</div><div class="mute">${MP.i+1} / ${MP.list.length}</div></div><div class="q" style="margin-top:10px">${esc(t.s)}</div>`;
+  t.o.forEach((o,j)=>{let c="";if(ans){if(t.a.includes(j))c="ok";else if(MP.sel===j)c="bad"}
+    h+=`<button class="opt ${c}" ${ans?"disabled":""} onclick="MP.sel=${j};if(MP.list[MP.i].a.includes(${j}))delMist(MP.list[MP.i].src);drawMist()"><span class="l">${L[j]})</span>${esc(o)}</button>`});
+  if(ans){if(t.e)h+=`<div class="expl">${esc(t.e)}</div>`;h+=`<div class="row" style="margin-top:12px"><button class="btn" onclick="MP.i++;MP.sel=-1;drawMist()">შემდეგი →</button></div>`}
+  el.innerHTML=h+`</div>`;
+}
+
+// ---------- browse ----------
+R.all=function(){
+  const el=document.getElementById("all");
+  if(!el.dataset.init){el.dataset.init=1;
+    el.innerHTML=`<div class="card"><div class="row"><input type="search" id="sq" placeholder="ძებნა (მაგ. DHCP, SMTP, OU, Spooler...)" oninput="drawAll()"></div>
+    <div class="row filters" style="margin-top:10px"><select id="sqz" onchange="drawAll()"><option value="0">ყველა ქვიზი</option>${[1,2,3,4].map(q=>`<option value="${q}">${QN[q]}</option>`).join("")}</select>
+    <select id="stp" onchange="drawAll()"><option value="d">განმარტებები</option><option value="o">ღია კითხვები</option><option value="t">ტესტები</option></select></div></div><div id="alist" class="card list"></div>`}
+  drawAll();
+};
+function drawAll(){
+  const s=(document.getElementById("sq").value||"").toLowerCase(),qz=+document.getElementById("sqz").value,tp=document.getElementById("stp").value;
+  const f=x=>(!qz||x.q===qz);let h="",n=0;
+  if(tp==="d")DEFS.filter(f).filter(x=>(x.t+x.d).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<b>${esc(x.t)}</b> — ${esc(x.d)}</div>`});
+  if(tp==="o")OPENS.filter(f).filter(x=>(x.t+x.a).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<div class="q">${esc(x.t)}</div><div class="ans">${esc(x.a)}</div></div>`});
+  if(tp==="t")TESTS.filter(f).filter(x=>(x.s+x.o.join(" ")).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<div class="q">${esc(x.s)}</div>${x.o.map((o,j)=>`<div style="${x.a.includes(j)?"color:var(--ok);font-weight:700":""}">${L[j]}) ${esc(o)}${x.a.includes(j)?" ✓":""}</div>`).join("")}${x.e?`<div class="expl">${esc(x.e)}</div>`:""}</div>`});
+  document.getElementById("alist").innerHTML=`<div class="mute">ნაპოვნია: ${n}</div>`+h;
+}
+R.home();
+</script>
+</body>
+</html>
