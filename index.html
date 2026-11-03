@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SysAdmin — ბილეთების ტრენაჟორი</title>
 <style>
-:root{color-scheme:light;--bg:#f6f4ef;--card:#fff;--ink:#1d2330;--mute:#6b7180;--line:#e4e0d6;--acc:#1f5c99;--acc2:#e8f0f9;--ok:#1f7a4a;--okbg:#e6f4ec;--bad:#b3261e;--badbg:#fbe9e7;--warn:#8a5a00;--warnbg:#fff4dc}
+:root{color-scheme:light;--bg:#f6f4ef;--card:#fff;--soft:#fbfaf7;--ink:#1d2330;--mute:#6b7180;--line:#e4e0d6;--acc:#1f5c99;--acc2:#e8f0f9;--ok:#1f7a4a;--okbg:#e6f4ec;--bad:#b3261e;--badbg:#fbe9e7;--warn:#8a5a00;--warnbg:#fff4dc;--warnline:#f0dca8;--warnink:#5f4300;--abg:#efe9fb;--aink:#5b3aa6}
+:root[data-theme=dark]{color-scheme:dark;--bg:#12161f;--card:#1b212c;--soft:#171c26;--ink:#e6e9ef;--mute:#9aa3b2;--line:#2c3442;--acc:#5fa3e8;--acc2:#1f2d40;--ok:#4cc38a;--okbg:#173326;--bad:#f07167;--badbg:#3a1d1c;--warn:#f0b54a;--warnbg:#33290f;--warnline:#5a4716;--warnink:#f3d79a;--abg:#2a2340;--aink:#b9a2f0}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Georgian","BPG Arial","Sylfaen","Segoe UI",system-ui,sans-serif;font-size:16px;line-height:1.5}
 header{background:#14233a;color:#fff;padding:18px 20px 0}
@@ -23,11 +24,11 @@ main{max-width:920px;margin:0 auto;padding:20px 16px 60px}
 .btn:disabled{opacity:.45;cursor:default}
 .chip{display:inline-block;font-size:12px;padding:2px 8px;border-radius:20px;background:var(--acc2);color:var(--acc);margin-right:6px;vertical-align:middle}
 .chip.v{background:var(--warnbg);color:var(--warn)}
-.chip.a{background:#efe9fb;color:#5b3aa6}
+.chip.a{background:var(--abg);color:var(--aink)}
 h2{font-size:18px;margin:22px 0 4px}
 h3{font-size:16px;margin:0 0 8px}
 .q{font-weight:600;margin:4px 0 10px}
-.opt{display:block;width:100%;text-align:left;background:#fbfaf7;border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:6px 0;font:inherit;cursor:pointer;color:var(--ink)}
+.opt{display:block;width:100%;text-align:left;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:6px 0;font:inherit;cursor:pointer;color:var(--ink)}
 .opt:hover{border-color:#b8c6d8}
 .opt.sel{border-color:var(--acc);background:var(--acc2)}
 .opt.ok{border-color:var(--ok);background:var(--okbg)}
@@ -35,9 +36,9 @@ h3{font-size:16px;margin:0 0 8px}
 .opt .l{font-weight:700;margin-right:8px;color:var(--mute)}
 .ans{background:var(--okbg);border-left:4px solid var(--ok);padding:10px 12px;border-radius:6px;margin-top:10px;white-space:pre-wrap}
 .expl{color:var(--mute);font-size:14px;margin-top:8px}
-textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:15px;resize:vertical;background:#fdfcfa}
+textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:15px;resize:vertical;background:var(--soft);color:var(--ink)}
 .self{display:flex;gap:8px;margin-top:8px}
-.self button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:14px}
+.self button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:14px}
 .self button.okb.on{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
 .self button.badb.on{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
 .score{font-size:22px;font-weight:700}
@@ -47,7 +48,7 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:8
 .bar>div{height:100%;background:var(--acc)}
 .flash{min-height:180px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;text-align:center;font-size:17px}
 .flash .back{margin-top:14px;text-align:left;background:var(--okbg);padding:12px;border-radius:8px;font-size:15.5px}
-input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit}
+input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card);color:var(--ink)}
 .list .item{border-bottom:1px solid var(--line);padding:10px 0}
 .list .item:last-child{border-bottom:0}
 .hide{display:none}
@@ -55,20 +56,38 @@ input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);bor
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
 .stat b{display:block;font-size:22px}
-.note{background:var(--warnbg);border:1px solid #f0dca8;color:#5f4300;border-radius:10px;padding:12px 14px;font-size:14.5px}
-select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:#fff}
+.note{background:var(--warnbg);border:1px solid var(--warnline);color:var(--warnink);border-radius:10px;padding:12px 14px;font-size:14.5px}
+select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hbtn{background:#22344f;color:#dfe7f3;border:0;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;font-size:13px;white-space:nowrap}
+.timer{position:sticky;top:0;z-index:5;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;margin:12px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.timer b{font-size:18px;font-variant-numeric:tabular-nums}
+.timer.low{border-color:var(--bad);color:var(--bad)}
+table.ref{width:100%;border-collapse:collapse;font-size:14.5px}
+table.ref th,table.ref td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.ref th{color:var(--mute);font-weight:600}
+mark{background:#ffe58a;color:#1d2330;border-radius:3px;padding:0 2px}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:12px;background:var(--soft);font-family:inherit}
+.totop{position:fixed;right:16px;bottom:16px;display:none;background:var(--acc);color:#fff;border:0;border-radius:20px;padding:8px 14px;cursor:pointer;font:inherit;font-size:13.5px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.totop.show{display:block}
+.wrong{border-left:4px solid var(--bad);padding:8px 12px;margin:8px 0;background:var(--soft);border-radius:6px}
+@media (max-width:560px){header h1{font-size:17px}nav button{padding:8px 10px;font-size:13.5px}.card{padding:14px}}
+@media print{header,nav,.btn,.totop,.filters,.self,.timer{display:none!important}body{background:#fff;color:#000}.card{break-inside:avoid;border-color:#bbb}}
 </style>
 </head>
 <body>
 <header>
+  <div class="top"><div>
   <h1>Windows Server სისტემური ადმინისტრირება — ბილეთების ტრენაჟორი</h1>
   <p>ქვიზები 1–4, თეორიული ნაწილი (ლაბების გარეშე) · განმარტებები, ღია კითხვები და ტესტები, მათ შორის გადაფორმულირებული ვარიანტები</p>
+  </div><button class="hbtn" id="themeBtn" title="თემის შეცვლა">◐ მუქი თემა</button></div>
   <nav id="nav">
     <button data-t="home" class="on">მთავარი</button>
     <button data-t="ticket">ბილეთი</button>
     <button data-t="tests">ტესტები</button>
     <button data-t="flash">ბარათები</button>
     <button data-t="mist">შეცდომები</button>
+    <button data-t="ref">კონსპექტი</button>
     <button data-t="all">მთელი ბაზა</button>
   </nav>
 </header>
@@ -78,8 +97,10 @@ select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--lin
 <section id="tests" class="hide"></section>
 <section id="flash" class="hide"></section>
 <section id="mist" class="hide"></section>
+<section id="ref" class="hide"></section>
 <section id="all" class="hide"></section>
 </main>
+<button class="totop" id="totop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ ზემოთ</button>
 <script>
 const DEFS=[],OPENS=[],TESTS=[];
 function D(q,t,d){DEFS.push({q,t,d})}
@@ -743,13 +764,42 @@ let MIST=store.get("mist",[]); // stems of wrong tests
 function addMist(t){if(!MIST.includes(t.s)){MIST.push(t.s);store.set("mist",MIST)}}
 function delMist(t){MIST=MIST.filter(s=>s!==t.s);store.set("mist",MIST)}
 const ALLTESTS=()=>TESTS.concat(AUTO);
+// per-quiz answer statistics and ticket history
+let PROG=store.get("prog",{1:{ok:0,n:0},2:{ok:0,n:0},3:{ok:0,n:0},4:{ok:0,n:0}});
+let HIST=store.get("hist",[]);
+function track(t,ok){const p=PROG[t.q]||(PROG[t.q]={ok:0,n:0});p.n++;if(ok)p.ok++;store.set("prog",PROG)}
+
+// ---------- theme ----------
+function applyTheme(t){document.documentElement.dataset.theme=t;document.getElementById("themeBtn").textContent=t==="dark"?"◑ ღია თემა":"◐ მუქი თემა"}
+applyTheme(store.get("theme",window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
+document.getElementById("themeBtn").onclick=()=>{const t=document.documentElement.dataset.theme==="dark"?"light":"dark";store.set("theme",t);applyTheme(t)};
+window.addEventListener("scroll",()=>document.getElementById("totop").classList.toggle("show",scrollY>600));
 
 // ---------- nav ----------
-document.getElementById("nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;
-  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
-  document.querySelectorAll("main>section").forEach(s=>s.classList.toggle("hide",s.id!==b.dataset.t));
-  R[b.dataset.t]&&R[b.dataset.t]()};
+let CUR="home";
+function go(t){CUR=t;
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.t===t));
+  document.querySelectorAll("main>section").forEach(s=>s.classList.toggle("hide",s.id!==t));
+  R[t]&&R[t]()}
+document.getElementById("nav").onclick=e=>{const b=e.target.closest("button");if(b)go(b.dataset.t)};
 const R={};
+
+// ---------- keyboard: 1-4 / A-D answer, Enter/→ next, Space flip ----------
+document.addEventListener("keydown",e=>{
+  if(e.target.matches("textarea,input,select")||e.ctrlKey||e.metaKey||e.altKey)return;
+  const k=e.key.toLowerCase(),n="1234".indexOf(k)>=0?"1234".indexOf(k):"abcd".indexOf(k);
+  if(CUR==="tests"&&TP&&TP.i<TP.list.length){
+    if(TP.sel<0&&n>=0&&n<TP.list[TP.i].o.length){answerTest(n);e.preventDefault()}
+    else if(TP.sel>=0&&(k==="enter"||k==="arrowright")){TP.i++;TP.sel=-1;drawTest();e.preventDefault()}
+  }else if(CUR==="mist"&&MP&&!MP.done&&MP.i<MP.list.length){
+    if(MP.sel<0&&n>=0&&n<MP.list[MP.i].o.length){answerMist(n);e.preventDefault()}
+    else if(MP.sel>=0&&(k==="enter"||k==="arrowright")){MP.i++;MP.sel=-1;drawMist();e.preventDefault()}
+  }else if(CUR==="flash"&&FC&&FC.i<FC.list.length){
+    if(k===" "){FC.flip=!FC.flip;drawFlash();e.preventDefault()}
+    else if(k==="arrowright"){flashMark(true);e.preventDefault()}
+    else if(k==="arrowleft"){flashMark(false);e.preventDefault()}
+  }
+});
 
 // ---------- home ----------
 R.home=function(){
@@ -767,8 +817,19 @@ R.home=function(){
   <p style="margin:0">1) <b>ბარათები</b> — ჯერ გაიარე განმარტებები და ღია კითხვები. 2) <b>ტესტები</b> — ივარჯიშე ყველა ტესტზე (პასუხების ადგილი ყოველ ჯერზე იცვლება). 3) <b>ბილეთი</b> — გამოცდის სიმულაცია: 5 განმარტება + 5 ღია კითხვა + 10 ტესტი, შემთხვევით ყველა ქვიზიდან. 4) <b>შეცდომები</b> — გაიმეორე ის ტესტები, რომლებშიც შეცდი.</p></div>
   <div class="card"><h3>ბაზის შემადგენლობა</h3>
   <table style="width:100%;border-collapse:collapse;font-size:14.5px"><tr style="text-align:left;color:var(--mute)"><th>ქვიზი</th><th>განმარტება</th><th>ღია</th><th>ტესტი</th><th>ტესტი განმ.-დან</th></tr>${rows}</table>
-  <p class="mute" style="margin:10px 0 0">ჭდეები: <span class="chip">ორიგინალი</span> — ქვიზიდან; <span class="chip v">ვარიანტი</span> — გადაფორმულირებული/ამოტრიალებული; <span class="chip a">განმარტებიდან</span> — ავტომატურად შედგენილი განმარტებიდან. სადაც ორიგინალ ტესტში ორაზროვნებაა, განმარტებაში მითითებულია.</p></div>`;
+  <p class="mute" style="margin:10px 0 0">ჭდეები: <span class="chip">ორიგინალი</span> — ქვიზიდან; <span class="chip v">ვარიანტი</span> — გადაფორმულირებული/ამოტრიალებული; <span class="chip a">განმარტებიდან</span> — ავტომატურად შედგენილი განმარტებიდან. სადაც ორიგინალ ტესტში ორაზროვნებაა, განმარტებაში მითითებულია.</p></div>
+  <div class="card"><h3>ჩემი პროგრესი (ტესტები)</h3>
+  ${[1,2,3,4].map(q=>{const p=PROG[q]||{ok:0,n:0},pc=p.n?Math.round(100*p.ok/p.n):0;
+    return `<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span>${QN[q]}</span><span class="mute">${p.n?pc+"% · "+p.ok+"/"+p.n:"ჯერ არ გაგივლია"}</span></div><div class="bar"><div style="width:${pc}%;background:${pc>=80?"var(--ok)":pc>=50?"var(--warn)":"var(--bad)"}"></div></div></div>`}).join("")}
+  <p class="mute" style="margin:10px 0 0">შეცდომების სიაში: <b>${MIST.length}</b> ტესტი. ${weakest()}</p></div>
+  <div class="card"><h3>ბილეთების ისტორია</h3>
+  ${HIST.length?`<table class="ref"><tr><th>თარიღი</th><th>ქვიზები</th><th>ტესტი</th><th>განმ.</th><th>ღია</th><th>დრო</th></tr>${HIST.slice(-10).reverse().map(h=>`<tr><td>${new Date(h.d).toLocaleString("ka-GE",{dateStyle:"short",timeStyle:"short"})}</td><td>${h.qs.join(", ")}</td><td>${h.t}/10</td><td>${h.df}/5</td><td>${h.op}/5</td><td>${fmtTime(h.sec)}</td></tr>`).join("")}</table>`:`<p class="mute" style="margin:0">ჯერ არცერთი ბილეთი არ შეგიმოწმებია.</p>`}
+  <div class="row" style="margin-top:10px"><button class="btn ghost" onclick="if(confirm('წავშალო მთელი სტატისტიკა და ისტორია?')){PROG={};HIST=[];store.set('prog',PROG);store.set('hist',HIST);R.home()}">სტატისტიკის განულება</button></div></div>
+  <div class="card"><h3>კლავიატურა</h3><p class="mute" style="margin:0">ტესტები/შეცდომები: <kbd>1</kbd>–<kbd>4</kbd> ან <kbd>A</kbd>–<kbd>D</kbd> — პასუხი, <kbd>Enter</kbd>/<kbd>→</kbd> — შემდეგი. ბარათები: <kbd>Space</kbd> — გადაბრუნება, <kbd>→</kbd> — ვიცი, <kbd>←</kbd> — გავიმეორო.</p></div>`;
 };
+function weakest(){const a=[1,2,3,4].map(q=>({q,p:PROG[q]})).filter(x=>x.p&&x.p.n>=5);if(!a.length)return "";
+  a.sort((x,y)=>x.p.ok/x.p.n-y.p.ok/y.p.n);return `ყველაზე სუსტი: <b>${QN[a[0].q]}</b> — მეტი ყურადღება მიაქციე.`}
+function fmtTime(s){if(s==null)return "—";s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
 
 // ---------- ticket ----------
 let TK=null;
@@ -780,16 +841,29 @@ function pickBalanced(arr,n,qs){
 }
 R.ticket=function(){if(!TK)newTicket();else drawTicket()};
 function ticketQs(){return [1,2,3,4].filter(q=>document.getElementById("tq"+q)?document.getElementById("tq"+q).checked:true)}
+let TKTIMER=null;
 function newTicket(){
   const qs=ticketQs();if(!qs.length)return;
-  const tpool=TESTS.concat(document.getElementById("tauto")&&!document.getElementById("tauto").checked?[]:AUTO.filter(x=>x.o.every(o=>o.length<140)));
-  TK={qs,defs:pickBalanced(DEFS,5,qs).map(x=>({x,txt:"",m:0,open:false})),opens:pickBalanced(OPENS,5,qs).map(x=>({x,txt:"",m:0,open:false})),tests:pickBalanced(tpool,10,qs).map(x=>({x:prep(x),sel:-1})),done:false};
+  const ae=document.getElementById("tauto"),auto=ae?ae.checked:true;
+  const te=document.getElementById("ttime"),min=te?+te.value:0;
+  const tpool=TESTS.concat(auto?AUTO.filter(x=>x.o.every(o=>o.length<140)):[]);
+  TK={qs,auto,min,start:Date.now(),end:min?Date.now()+min*60000:0,defs:pickBalanced(DEFS,5,qs).map(x=>({x,txt:"",m:0,open:false})),opens:pickBalanced(OPENS,5,qs).map(x=>({x,txt:"",m:0,open:false})),tests:pickBalanced(tpool,10,qs).map(x=>({x:prep(x),sel:-1})),done:false};
+  clearInterval(TKTIMER);TKTIMER=setInterval(tickTimer,1000);
   drawTicket();
+}
+function tickTimer(){
+  if(!TK||TK.done){clearInterval(TKTIMER);return}
+  const el=document.getElementById("tmr");const sec=TK.end?(TK.end-Date.now())/1000:(Date.now()-TK.start)/1000;
+  if(el){el.textContent=fmtTime(sec);el.parentElement.parentElement.classList.toggle("low",!!TK.end&&sec<300)}
+  if(TK.end&&sec<=0){alert("დრო ამოიწურა! ბილეთი შემოწმდება.");gradeTicket()}
 }
 function drawTicket(){
   const el=document.getElementById("ticket");const qs=TK.qs;
-  let h=`<div class="card filters"><div class="row"><b>ქვიზები:</b>${[1,2,3,4].map(q=>`<label><input type="checkbox" id="tq${q}" ${qs.includes(q)?"checked":""}> ${QN[q]}</label>`).join("")}<label><input type="checkbox" id="tauto" checked> ტესტები განმარტებებიდანაც</label></div>
-  <div class="row" style="margin-top:10px"><button class="btn" onclick="newTicket()">ახალი ბილეთი</button><span class="mute">დაწერე პასუხი, მერე დააჭირე „პასუხის ნახვა“ და თავად შეაფასე. ტესტები მოწმდება ბოლოს.</span></div></div>`;
+  const answered=TK.tests.filter(t=>t.sel>=0).length+TK.defs.concat(TK.opens).filter(x=>x.txt.trim()||x.m).length;
+  let h=`<div class="card filters"><div class="row"><b>ქვიზები:</b>${[1,2,3,4].map(q=>`<label><input type="checkbox" id="tq${q}" ${qs.includes(q)?"checked":""}> ${QN[q]}</label>`).join("")}<label><input type="checkbox" id="tauto" ${TK.auto?"checked":""}> ტესტები განმარტებებიდანაც</label></div>
+  <div class="row" style="margin-top:8px"><b>დრო:</b><select id="ttime">${[[0,"ლიმიტის გარეშე"],[30,"30 წთ"],[45,"45 წთ"],[60,"60 წთ"],[90,"90 წთ"]].map(([v,l])=>`<option value="${v}" ${TK.min===v?"selected":""}>${l}</option>`).join("")}</select></div>
+  <div class="row" style="margin-top:10px"><button class="btn" onclick="newTicket()">ახალი ბილეთი</button><button class="btn sec" onclick="window.print()">ბეჭდვა</button><span class="mute">დაწერე პასუხი, მერე დააჭირე „პასუხის ნახვა“ და თავად შეაფასე. ტესტები მოწმდება ბოლოს.</span></div></div>`;
+  if(!TK.done)h+=`<div class="timer"><span>${TK.end?"დარჩენილი დრო":"გასული დრო"}: <b id="tmr">${fmtTime(TK.end?(TK.end-Date.now())/1000:(Date.now()-TK.start)/1000)}</b></span><span class="mute">შევსებული: ${answered}/20</span></div>`;
   h+=`<h2>I. განმარტეთ ტერმინები (5)</h2>`;
   TK.defs.forEach((it,i)=>{h+=`<div class="card">${chips(it.x)}<div class="q"><span class="num">${i+1}.</span>${esc(it.x.t)} —</div>
    <textarea oninput="TK.defs[${i}].txt=this.value" placeholder="შენი განმარტება...">${esc(it.txt)}</textarea>
@@ -807,11 +881,22 @@ function drawTicket(){
     if(TK.done&&t.e)h+=`<div class="expl">${esc(t.e)}</div>`;h+=`</div>`});
   if(!TK.done)h+=`<div class="row"><button class="btn" onclick="gradeTicket()">ბილეთის შემოწმება</button></div>`;
   else{const ok=TK.tests.filter(it=>it.x.a.includes(it.sel)).length;const dm=TK.defs.filter(x=>x.m===1).length,om=TK.opens.filter(x=>x.m===1).length;
-    h+=`<div class="card"><div class="score">ტესტები: ${ok}/10 · განმარტებები: ${dm}/5 · ღია: ${om}/5</div><div class="mute">განმარტებები და ღია კითხვები შენი თვითშეფასებით ითვლება. არასწორი ტესტები დაემატა „შეცდომებს“.</div><div class="row" style="margin-top:10px"><button class="btn" onclick="newTicket()">შემდეგი ბილეთი</button></div></div>`}
+    h+=`<div class="card"><div class="score">ტესტები: ${ok}/10 · განმარტებები: ${dm}/5 · ღია: ${om}/5</div><div class="mute">დახარჯული დრო: ${fmtTime(TK.sec)}. განმარტებები და ღია კითხვები შენი თვითშეფასებით ითვლება — შეაფასე ✓/✗ და ისტორიაში შედეგი განახლდება. არასწორი ტესტები დაემატა „შეცდომებს“.</div><div class="row" style="margin-top:10px"><button class="btn" onclick="newTicket()">შემდეგი ბილეთი</button></div></div>`}
   el.innerHTML=h;
 }
-function selfMark(k,i){const m=TK[k][i].m;return `<div class="self"><button class="okb ${m===1?"on":""}" onclick="TK.${k}[${i}].m=1;drawTicket()">✓ ვიცოდი</button><button class="badb ${m===-1?"on":""}" onclick="TK.${k}[${i}].m=-1;drawTicket()">✗ ვერ ვიცოდი</button></div>`}
-function gradeTicket(){TK.done=true;TK.defs.concat(TK.opens).forEach(x=>x.open=true);TK.tests.forEach(it=>{if(!it.x.a.includes(it.sel))addMist(it.x.src);});drawTicket();window.scrollTo(0,document.body.scrollHeight)}
+function selfMark(k,i){const m=TK[k][i].m;return `<div class="self"><button class="okb ${m===1?"on":""}" onclick="TK.${k}[${i}].m=1;saveHist();drawTicket()">✓ ვიცოდი</button><button class="badb ${m===-1?"on":""}" onclick="TK.${k}[${i}].m=-1;saveHist();drawTicket()">✗ ვერ ვიცოდი</button></div>`}
+function gradeTicket(){
+  if(TK.done)return;
+  const left=TK.tests.filter(t=>t.sel<0).length,expired=TK.end&&Date.now()>=TK.end;
+  if(left&&!expired&&!confirm(left+" ტესტი უპასუხოდ დარჩა. მაინც შევამოწმო?"))return;
+  TK.done=true;clearInterval(TKTIMER);TK.sec=(Date.now()-TK.start)/1000;
+  TK.defs.concat(TK.opens).forEach(x=>x.open=true);
+  TK.tests.forEach(it=>{const ok=it.x.a.includes(it.sel);track(it.x.src,ok);if(!ok)addMist(it.x.src)});
+  TK.hid=Date.now();saveHist();drawTicket();window.scrollTo(0,document.body.scrollHeight)}
+// self-assessment can change after grading, so the history entry is upserted
+function saveHist(){if(!TK||!TK.done)return;
+  const e={id:TK.hid,d:TK.hid,qs:TK.qs,t:TK.tests.filter(it=>it.x.a.includes(it.sel)).length,df:TK.defs.filter(x=>x.m===1).length,op:TK.opens.filter(x=>x.m===1).length,sec:TK.sec};
+  const i=HIST.findIndex(h=>h.id===e.id);if(i>=0)HIST[i]=e;else HIST.push(e);HIST=HIST.slice(-50);store.set("hist",HIST)}
 
 // ---------- test practice ----------
 let TP=null;
@@ -820,18 +905,22 @@ function setupTests(){
   const el=document.getElementById("tests");
   el.innerHTML=`<div class="card filters"><div class="row"><b>ქვიზები:</b>${[1,2,3,4].map(q=>`<label><input type="checkbox" class="pq" value="${q}" checked> ${QN[q]}</label>`).join("")}</div>
   <div class="row" style="margin-top:8px"><b>ტიპი:</b><label><input type="checkbox" class="pk" value="orig" checked> ორიგინალი</label><label><input type="checkbox" class="pk" value="var" checked> ვარიანტები</label><label><input type="checkbox" class="pk" value="auto"> განმარტებებიდან</label></div>
-  <div class="row" style="margin-top:10px"><button class="btn" onclick="startTests()">დაწყება</button></div></div><div id="tbox"></div>`;
+  <div class="row" style="margin-top:8px"><b>რაოდენობა:</b><select id="pn"><option value="10">10</option><option value="20" selected>20</option><option value="50">50</option><option value="0">ყველა</option></select></div>
+  <div class="row" style="margin-top:10px"><button class="btn" onclick="startTests()">დაწყება</button><span class="mute">კლავიატურა: <kbd>1</kbd>–<kbd>4</kbd>, <kbd>Enter</kbd></span></div></div><div id="tbox"></div>`;
 }
 function startTests(){
-  const qs=[...document.querySelectorAll(".pq:checked")].map(x=>+x.value),ks=[...document.querySelectorAll(".pk:checked")].map(x=>x.value);
-  const pool=shuffle(ALLTESTS().filter(t=>qs.includes(t.q)&&ks.includes(t.kind)));
-  if(!pool.length)return;
-  TP={list:pool.map(prep),i:0,sel:-1,ok:0,bad:0};drawTest();
+  const qs=[...document.querySelectorAll(".pq:checked")].map(x=>+x.value),ks=[...document.querySelectorAll(".pk:checked")].map(x=>x.value),n=+document.getElementById("pn").value;
+  let pool=shuffle(ALLTESTS().filter(t=>qs.includes(t.q)&&ks.includes(t.kind)));
+  if(!pool.length)return;if(n)pool=pool.slice(0,n);
+  TP={list:pool.map(prep),i:0,sel:-1,ok:0,bad:0,wrong:[]};drawTest();
 }
 function drawTest(){
   const box=document.getElementById("tbox");if(!box){setupTests();return}
   if(!TP){box.innerHTML="";return}
-  if(TP.i>=TP.list.length){box.innerHTML=`<div class="card"><div class="score">დასრულდა: ${TP.ok} სწორი, ${TP.bad} შეცდომა</div><div class="row" style="margin-top:10px"><button class="btn" onclick="startTests()">თავიდან</button></div></div>`;return}
+  if(TP.i>=TP.list.length){const pc=Math.round(100*TP.ok/TP.list.length);
+    box.innerHTML=`<div class="card"><div class="score">დასრულდა: ${TP.ok} სწორი, ${TP.bad} შეცდომა (${pc}%)</div>
+    ${TP.wrong.length?`<h3 style="margin-top:14px">შეცდომების განხილვა</h3>${TP.wrong.map(w=>`<div class="wrong"><div class="q" style="margin:0 0 4px">${esc(w.t.s)}</div><div style="color:var(--bad)">შენი: ${esc(w.t.o[w.sel])}</div><div style="color:var(--ok)">სწორი: ${w.t.a.map(i=>esc(w.t.o[i])).join(" / ")}</div>${w.t.e?`<div class="expl">${esc(w.t.e)}</div>`:""}</div>`).join("")}`:""}
+    <div class="row" style="margin-top:10px"><button class="btn" onclick="startTests()">თავიდან</button>${TP.wrong.length?`<button class="btn sec" onclick="TP={list:shuffle(TP.wrong.map(w=>w.t.src)).map(prep),i:0,sel:-1,ok:0,bad:0,wrong:[]};drawTest()">მხოლოდ შეცდომების გამეორება</button>`:""}</div></div>`;return}
   const t=TP.list[TP.i];const ans=TP.sel>=0;
   let h=`<div class="card"><div class="row" style="justify-content:space-between"><div>${chips(t.src)}</div><div class="mute">${TP.i+1} / ${TP.list.length} · ✓ ${TP.ok} · ✗ ${TP.bad}</div></div>
   <div class="bar"><div style="width:${100*TP.i/TP.list.length}%"></div></div><div class="q" style="margin-top:12px">${esc(t.s)}</div>`;
@@ -840,7 +929,7 @@ function drawTest(){
   if(ans){if(t.e)h+=`<div class="expl">${esc(t.e)}</div>`;h+=`<div class="row" style="margin-top:12px"><button class="btn" onclick="TP.i++;TP.sel=-1;drawTest()">შემდეგი →</button></div>`}
   box.innerHTML=h+`</div>`;
 }
-function answerTest(j){const t=TP.list[TP.i];TP.sel=j;if(t.a.includes(j)){TP.ok++;delMist(t.src)}else{TP.bad++;addMist(t.src)}drawTest()}
+function answerTest(j){const t=TP.list[TP.i];TP.sel=j;const ok=t.a.includes(j);track(t.src,ok);if(ok){TP.ok++;delMist(t.src)}else{TP.bad++;TP.wrong.push({t,sel:j});addMist(t.src)}drawTest()}
 
 // ---------- flashcards ----------
 let FC=null;
@@ -864,8 +953,10 @@ function drawFlash(){
   box.innerHTML=`<div class="mute" style="margin-top:10px">${FC.i+1} / ${FC.list.length} · ${c.tp}</div>
   <div class="card flash" onclick="FC.flip=!FC.flip;drawFlash()"><div>${chips(c)}</div><div style="font-weight:700;margin-top:8px">${esc(c.f)}</div>
   ${FC.flip?`<div class="back">${esc(c.b)}</div>`:`<div class="mute" style="margin-top:12px">დააჭირე პასუხის სანახავად</div>`}</div>
-  <div class="row"><button class="btn" style="background:var(--ok)" onclick="FC.know++;FC.i++;FC.flip=false;drawFlash()">✓ ვიცი</button><button class="btn" style="background:var(--bad)" onclick="FC.again.push(FC.list[FC.i]);FC.i++;FC.flip=false;drawFlash()">✗ გავიმეორო</button></div>`;
+  <div class="bar" style="margin-bottom:10px"><div style="width:${100*FC.i/FC.list.length}%"></div></div>
+  <div class="row"><button class="btn" style="background:var(--ok)" onclick="flashMark(true)">✓ ვიცი</button><button class="btn" style="background:var(--bad)" onclick="flashMark(false)">✗ გავიმეორო</button><span class="mute"><kbd>Space</kbd> გადაბრუნება · <kbd>→</kbd> ვიცი · <kbd>←</kbd> გავიმეორო</span></div>`;
 }
+function flashMark(k){if(k)FC.know++;else FC.again.push(FC.list[FC.i]);FC.i++;FC.flip=false;drawFlash()}
 
 // ---------- mistakes ----------
 let MP=null;
@@ -883,10 +974,51 @@ function drawMist(){
   const t=MP.list[MP.i],ans=MP.sel>=0;
   let h=`<div class="card"><div class="row" style="justify-content:space-between"><div>${chips(t.src)}</div><div class="mute">${MP.i+1} / ${MP.list.length}</div></div><div class="q" style="margin-top:10px">${esc(t.s)}</div>`;
   t.o.forEach((o,j)=>{let c="";if(ans){if(t.a.includes(j))c="ok";else if(MP.sel===j)c="bad"}
-    h+=`<button class="opt ${c}" ${ans?"disabled":""} onclick="MP.sel=${j};if(MP.list[MP.i].a.includes(${j}))delMist(MP.list[MP.i].src);drawMist()"><span class="l">${L[j]})</span>${esc(o)}</button>`});
+    h+=`<button class="opt ${c}" ${ans?"disabled":""} onclick="answerMist(${j})"><span class="l">${L[j]})</span>${esc(o)}</button>`});
   if(ans){if(t.e)h+=`<div class="expl">${esc(t.e)}</div>`;h+=`<div class="row" style="margin-top:12px"><button class="btn" onclick="MP.i++;MP.sel=-1;drawMist()">შემდეგი →</button></div>`}
   el.innerHTML=h+`</div>`;
 }
+function answerMist(j){const t=MP.list[MP.i];MP.sel=j;const ok=t.a.includes(j);track(t.src,ok);if(ok)delMist(t.src);drawMist()}
+
+// ---------- quick reference ----------
+const REF=[
+ ["პორტები და პროტოკოლები",["პროტოკოლი","პორტი","დანიშნულება"],[
+  ["FTP","TCP 20/21","ფაილების გადაცემა"],["SSH","TCP 22","დაცული დისტანციური წვდომა"],["SMTP","TCP 25","ფოსტის გაგზავნა / MTA"],["DNS","53","სახელი ↔ IP"],
+  ["DHCP","UDP 67 (სერვერი) / 68 (კლიენტი)","IP-ების დინამიური გაცემა"],["HTTP","TCP 80","ვები"],["POP3","TCP 110","ფოსტის ჩამოტვირთვა"],["IMAP4","TCP 143","ფოსტის სინქრონიზაცია"],
+  ["HTTPS / RD Gateway","TCP 443","დაშიფრული ვები, RDP HTTPS-ში"],["RDP","TCP 3389","Remote Desktop"]]],
+ ["FSMO როლები",["როლი","დონე","ფუნქცია"],[
+  ["Schema Master","ტყე","AD სქემის ცვლილებები"],["Domain Naming Master","ტყე","დომენების დამატება/წაშლა"],
+  ["PDC Emulator","დომენი","პაროლები, დროის სინქრონიზაცია"],["RID Master","დომენი","RID დიაპაზონები → SID"],["Infrastructure Master","დომენი","ჯგუფის წევრობა, GUID/DN დომენებს შორის"]]],
+ ["ჯგუფის სკოუპები",["სკოუპი","წევრები","ნებართვები"],[
+  ["Domain Local","ტყის ნებისმიერი დომენიდან","მხოლოდ საკუთარ დომენში"],["Global","მხოლოდ საკუთარი დომენიდან","ტყის ნებისმიერ დომენში"],["Universal","ტყის ნებისმიერი დომენიდან","მთელ ტყეში (GC-ში ინახება)"]]],
+ ["Share vs NTFS",["","Share","NTFS"],[
+  ["ნებართვები","Full Control, Change, Read","Full control, Modify, Read & execute, List, Read, Write, Special"],
+  ["მოქმედებს","მხოლოდ ქსელიდან","ლოკალურად და ქსელიდან"],["ეფექტური (ქსელით)","ყველაზე შეზღუდული კომბინაცია","—"],
+  ["Move იმავე ტომზე / Copy","—","ინარჩუნებს / იღებს სამიზნის ნებართვებს"],["Deny vs Allow","Deny სჭარბობს","Deny სჭარბობს"]]],
+ ["DNS ზონები",["ზონა","ასლი","შენიშვნა"],[
+  ["Primary","Read-Write","პირველადი ასლი"],["Secondary","Read-Only","Zone Transfer-ით"],["AD-Integrated Primary","Read-Write ყველა DC-ზე","Secure Dynamic Updates"],["Stub","არაავტორიტეტული","მხოლოდ SOA, NS, Glue A"]]],
+ ["Hyper-V",["თემა","ვარიანტი","აღწერა"],[
+  ["Virtual Switch","External","VM ↔ ფიზიკური ქსელი"],["","Internal","VM ↔ Host"],["","Private","მხოლოდ VM ↔ VM"],
+  ["Generation","Gen 1","BIOS, IDE, 32/64-ბიტი"],["","Gen 2","UEFI + Secure Boot, მხოლოდ 64-ბიტი"],
+  ["Checkpoint","Standard","დისკი + მეხსიერება"],["","Production","VSS, მეხსიერების გარეშე"],
+  ["დისკი",".vhd / .vhdx","2 TB / 64 TB"],["მოთხოვნები","CPU","64-ბიტი, Intel VT/AMD-V, SLAT"]]],
+ ["ჰიპერვიზორები",["ტიპი","სად ყენდება","მაგალითები"],[
+  ["Type 1 (Bare-metal)","პირდაპირ აპარატურაზე","Hyper-V, ESXi, KVM"],["Type 2 (Hosted)","Host OS-ზე","VMware Workstation, VirtualBox"]]],
+ ["WS2019 გამოცემები",["გამოცემა","ვისთვის","ვირტუალიზაცია"],[
+  ["Essentials","მცირე (25 user / 50 device)","—"],["Standard","საშუალო","2 VM"],["Datacenter","დიდი / ღრუბელი","ულიმიტო"],["Hyper-V Server","უფასო ჰიპერვიზორი","—"]]],
+ ["AD ინსტრუმენტები",["ინსტრუმენტი","ფაილი",""],[
+  ["AD Users and Computers","dsa.msc",""],["AD Domains and Trusts","domain.msc",""],["AD Sites and Services","dssite.msc",""],["AD Administrative Center","dsac.exe",""],
+  ["DNS Manager","dnsmgmt.msc",""],["Local Users and Groups","lusrmgr.msc",""],["Group Policy Management","gpmc.msc",""]]],
+ ["ლოკალური ანგარიშები (CMD / PowerShell)",["მოქმედება","CMD","PowerShell"],[
+  ["სია","net user","Get-LocalUser"],["შექმნა","net user Name Pass /add","New-LocalUser"],["წაშლა","net user Name /delete","Remove-LocalUser"],
+  ["ჯგუფში დამატება","net localgroup Group User /add","Add-LocalGroupMember"],["გათიშვა","net user Name /active:no","Disable-LocalUser"],["ჯგუფის შექმნა","net localgroup Group /add","New-LocalGroup"]]],
+ ["DHCP",["პარამეტრი","მნიშვნელობა",""],[
+  ["Option 003","Default Gateway (Router)",""],["Option 006","DNS Servers",""],["Scope","IP დიაპაზონი",""],["Reservation","MAC → ფიქსირებული IP",""],["Relay Agent","ბროადქასტი სხვა ქვექსელიდან → DHCP სერვერი",""]]]
+];
+R.ref=function(){
+  document.getElementById("ref").innerHTML=`<div class="note">მოკლე შეჯამება ყველაზე ხშირად შეკითხვადი ფაქტებისა — ცხრილები ბეჭდვადია (<kbd>Ctrl</kbd>+<kbd>P</kbd>).</div>`+
+  REF.map(([title,head,rows])=>`<div class="card"><h3>${esc(title)}</h3><table class="ref"><tr>${head.map(x=>`<th>${esc(x)}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map((c,i)=>`<td>${i===0?`<b>${esc(c)}</b>`:esc(c)}</td>`).join("")}</tr>`).join("")}</table></div>`).join("");
+};
 
 // ---------- browse ----------
 R.all=function(){
@@ -900,9 +1032,11 @@ R.all=function(){
 function drawAll(){
   const s=(document.getElementById("sq").value||"").toLowerCase(),qz=+document.getElementById("sqz").value,tp=document.getElementById("stp").value;
   const f=x=>(!qz||x.q===qz);let h="",n=0;
-  if(tp==="d")DEFS.filter(f).filter(x=>(x.t+x.d).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<b>${esc(x.t)}</b> — ${esc(x.d)}</div>`});
-  if(tp==="o")OPENS.filter(f).filter(x=>(x.t+x.a).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<div class="q">${esc(x.t)}</div><div class="ans">${esc(x.a)}</div></div>`});
-  if(tp==="t")TESTS.filter(f).filter(x=>(x.s+x.o.join(" ")).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<div class="q">${esc(x.s)}</div>${x.o.map((o,j)=>`<div style="${x.a.includes(j)?"color:var(--ok);font-weight:700":""}">${L[j]}) ${esc(o)}${x.a.includes(j)?" ✓":""}</div>`).join("")}${x.e?`<div class="expl">${esc(x.e)}</div>`:""}</div>`});
+  const re=s?new RegExp("("+s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","gi"):null;
+  const hl=t=>re?String(t).split(re).map((p,i)=>i%2?`<mark>${esc(p)}</mark>`:esc(p)).join(""):esc(t);
+  if(tp==="d")DEFS.filter(f).filter(x=>(x.t+" "+x.d).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<b>${hl(x.t)}</b> — ${hl(x.d)}</div>`});
+  if(tp==="o")OPENS.filter(f).filter(x=>(x.t+" "+x.a).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<div class="q">${hl(x.t)}</div><div class="ans">${hl(x.a)}</div></div>`});
+  if(tp==="t")TESTS.filter(f).filter(x=>(x.s+" "+x.o.join(" ")).toLowerCase().includes(s)).forEach(x=>{n++;h+=`<div class="item">${chips(x)}<div class="q">${hl(x.s)}</div>${x.o.map((o,j)=>`<div style="${x.a.includes(j)?"color:var(--ok);font-weight:700":""}">${L[j]}) ${hl(o)}${x.a.includes(j)?" ✓":""}</div>`).join("")}${x.e?`<div class="expl">${hl(x.e)}</div>`:""}</div>`});
   document.getElementById("alist").innerHTML=`<div class="mute">ნაპოვნია: ${n}</div>`+h;
 }
 R.home();
